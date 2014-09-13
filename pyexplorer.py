@@ -11,11 +11,23 @@ def check_arguments(arguments, ideal_arguments):
 
 	invalid_arguments = [] #Will contain 'key' if value in that key:value pair is invalid.
 
+	#Checking for normal arguments.
 	for arg in arguments.keys():
 
-		if not arguments[arg] in allowed_args[arg]:
+		try: #Try-except here since there are some arguments which are not defined in ideal_arguments.
+			if not arguments[arg] in allowed_args[arg]:
 
-			invalid_arguments.append(arg)
+				invalid_arguments.append(arg)
+
+		except KeyError: pass
+
+	#Cheking for directory existence.
+	try: #try-except since 'origin' may not exist in arguments dict.
+		if not os.path.isdir(arguments['origin']):
+			invalid_arguments.append('origin')
+
+	except KeyError:
+		pass
 
 	if len(invalid_arguments)==0: #No invalid arguments, returns a tuple containing True at 0th positions
 		return (False, None)
@@ -56,7 +68,7 @@ def change_types(arguments):
 			arguments[key] = False
 
 		#Changing to integer value if 'value' can be changed to integer i.e. if 'value' is a integer written as string.
-		try:
+		try: 
 			arguments[key] = int(value)
 
 		except:continue
@@ -65,18 +77,21 @@ def change_types(arguments):
 
 def set_defaults(): #Sets default values to command line argument variables.
 
-	global parent_navigation, show_hidden
+	global parent_navigation, show_hidden, origin
 
 	parent_navigation = True
 
 	show_hidden = False
 
+	origin = '.'
+
 set_defaults() #Setting up default values to command line argument variables.
 
 #Setting up command-line arguments.
-if argv[1:]>0:
+
+if len(argv[1:])>0: #If user has given arguments
 			
-	arguments = {}
+	arguments = {} # An key:value version of command-line arguments i.e. argv[1:]
 
 	for arg in argv[1:]: #Leaving the first element i.e. the filename.
 
@@ -87,9 +102,9 @@ if argv[1:]>0:
 
 	invalid_arguments = check_arguments(arguments, allowed_args)
 
-	if invalid_arguments[0]:
+	if invalid_arguments[0]: #The first index i.e. 0th index will always be a boolean value i.e. True or False.
 
-		invalid_arg_reporter(arguments, invalid_arguments[1], do_exit=True)
+		invalid_arg_reporter(arguments, invalid_arguments[1], do_exit=True) # do exit if their is even one invalid argument value present.
 
 	arguments = change_types(arguments) #Changing types if possible. Read comment inside that function.
 
@@ -102,13 +117,17 @@ screen.keypad(1) #Enable use of curses.KEY_UP, curses.KEY_DOWN etc. if it is ena
 
 class manage(object):
 	
-	def __init__(self, parent_navigation, show_hidden): #previous_directories a bool value which means wheather to include .. in the contents of current directories or not.
+	def __init__(self, parent_navigation, show_hidden, origin): #previous_directories a bool value which means wheather to include .. in the contents of current directories or not.
 
 		self.update_dims() #getting screen dimensions.
 		
 		self.parent_navigation = parent_navigation
 
 		self.show_hidden = show_hidden
+
+		self.origin = origin #Defining 'self.origin' variable is useless here. But defined as per standard.
+
+		os.chdir(self.origin) #Initially changing initial path. Note: 'self.Chdir()' is not allowed to do this as it only takes input from self.items_onscreen and self.selected
 
 		curses.start_color()
 
@@ -144,10 +163,10 @@ class manage(object):
 
 		self.dir_items = self.extra_paths+os.listdir('.') #For initialization, it is needed, even Chdir method needs that dir_items should already exist.
 
-		self.items_onscreen = self.dir_items
-		
+		self.items_onscreen = self.dir_items #Items that will be shown on the screen.
+
 		self.sorter() #Sorts dir_items. See comments in sorter method.
-		
+
 		self.slice_start = 0 #Starts slicing the dir_items from value 0 by default.
 
 		self.SIG = 0 #define SIG:- Stands for "Signal" and means to recent key action. -1 represents KEY_UP, +1 represents KEY_DOWN, +2 represents ENTER, +3 represents HOME, +4 represents END and 0 represents initial State(i.e. no key pressed since the program was started).
@@ -186,7 +205,13 @@ class manage(object):
 
 			rm_hidden = [] #For dirs. Stands for 'removed hiddens'
 
-			for i in dirs[2:]: #Removing hidden directories.
+			if dirs[1]=='..': #Due to parent_navigation, '..' is already removed. That's why wee need these conditions i.e. dirs[2:] and dirs[1:]
+				mutable_dirs = dirs[2:] #mutable_dirs is same as 'dirs' but preserved reserved directory/directories i.e. '.' and '..'
+
+			elif not dirs[1]=='..':
+				mutable_dirs = dirs[1:]
+
+			for i in mutable_dirs: #Removing hidden directories.
 					
 				if not i[0]=='.':
 					rm_hidden.append(i)
@@ -207,7 +232,6 @@ class manage(object):
 
 		if not self.parent_navigation:
 
-			screen.addstr(10, 10, "Testing 2 ")
 			if self.dir_navigations>0:
 				self.extra_paths = ['.', '..']
 
@@ -216,7 +240,7 @@ class manage(object):
 		else:
 			self.extra_paths = ['.', '..']
 			
-	def Chdir(self):
+	def Chdir(self): #A changing directory method which selects directory from selected region i.e. from self.selected, self.items_onscreen etc.
 
 		switch_dir = self.items_onscreen[self.selected]
 
@@ -229,6 +253,7 @@ class manage(object):
 
 			elif switch_dir=='.':
 				pass
+
 			else:
 				self.dir_navigations+=1
 
@@ -285,7 +310,6 @@ class manage(object):
 	def pre_printer(self):
 
 		self.update_dims()
-
 
 		if self.SIG==-1: #UP Arrow Key
 			
@@ -373,7 +397,7 @@ class manage(object):
 	def end(self):
 		curses.endwin()
 
-browser = manage(parent_navigation=parent_navigation, show_hidden=show_hidden)
+browser = manage(parent_navigation, show_hidden, origin)
 q = 0
 
 ii = 0
