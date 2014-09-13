@@ -61,10 +61,10 @@ def change_types(arguments):
 		value = arguments[key]
 
 		#Changing to boolean value if 'value' can be changed to boolean i.e. if 'value' is "True" or "False" written as strings.
-		if value=="True":
+		if value in ("True", "true", 1):
 			arguments[key] = True
 
-		elif value=="False":
+		elif value in ("False", "false", 0):
 			arguments[key] = False
 
 		#Changing to integer value if 'value' can be changed to integer i.e. if 'value' is a integer written as string.
@@ -87,6 +87,8 @@ def set_defaults(): #Sets default values to command line argument variables.
 
 set_defaults() #Setting up default values to command line argument variables.
 
+str_booleans = ("True", "true", '1', "False", "false", '0') #A variable containing set of string versions of boolean "True" and "False".
+
 #Setting up command-line arguments.
 
 if len(argv[1:])>0: #If user has given arguments
@@ -98,7 +100,7 @@ if len(argv[1:])>0: #If user has given arguments
 		key, value = arg.split('=')
 		arguments[key] = value
 
-	allowed_args = {'show_hidden': ("True", "False"), 'parent_navigation': ("True", "False")} #These are the possible arguments and their respective possible values.
+	allowed_args = {'show_hidden': str_booleans, 'parent_navigation': str_booleans} #These are the possible arguments and their respective possible values.
 
 	invalid_arguments = check_arguments(arguments, allowed_args)
 
