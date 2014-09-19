@@ -207,10 +207,16 @@ class manage(object):
 
 			rm_hidden = [] #For dirs. Stands for 'removed hiddens'
 
-			if dirs[1]=='..': #Due to parent_navigation, '..' is already removed. That's why wee need these conditions i.e. dirs[2:] and dirs[1:]
-				mutable_dirs = dirs[2:] #mutable_dirs is same as 'dirs' but preserved reserved directory/directories i.e. '.' and '..'
+			if len(dirs)>=2: #In case if the directory do not have any sub directories, correnposing this if-else condition is used.
 
-			elif not dirs[1]=='..':
+				if dirs[1]=='..': #Due to parent_navigation, '..' is already removed. That's why wee need these conditions i.e. dirs[2:] and dirs[1:]
+					mutable_dirs = dirs[2:] #mutable_dirs is same as 'dirs' but preserved reserved directory/directories i.e. '.' and '..'
+
+				elif not dirs[1]=='..':
+					mutable_dirs = dirs[1:]
+
+			else:
+
 				mutable_dirs = dirs[1:]
 
 			for i in mutable_dirs: #Removing hidden directories.
