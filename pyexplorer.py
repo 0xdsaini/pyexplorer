@@ -396,6 +396,9 @@ class manage(object):
 					self.color_pair = 1
 					self.bold = 0
 
+			#Current working directory. Top of window.
+			screen.addstr(0, 0, center(os.getcwd(), self.dims[1]-10), curses.color_pair(3) | self.BOLD[1])
+
 			#Credits to Developer.
 			screen.addstr(self.dims[0]-1, self.dims[1]-len(" "+self.credits+" ")-1, " "+self.credits+" ", curses.color_pair(5) | self.BOLD[1])
 
@@ -408,9 +411,7 @@ class manage(object):
 browser = manage(parent_navigation, show_hidden, origin)
 q = 0
 
-ii = 0
-
-while q!=113: #ASCII code 113 = 'q'
+while q!=81: #ASCII code 81 = 'Q'
 
 	q = screen.getch()
 
