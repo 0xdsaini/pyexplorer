@@ -3,6 +3,7 @@
 import curses
 import os
 from string import center
+from string import printable
 from time import sleep
 from sys import argv
 from termcolor import colored
@@ -158,6 +159,8 @@ class manage(object):
 
 		self.color_pair = 1
 		self.selected = 0
+
+		self.jumpchar = '.' #Initial jump character.
 
 		self.dir_navigations = 0 #Stats the number of forward movements or backward movements in terms of numbers. It can be considered as 1 dimensional "vector" quantity. As we move forward(i.e. enters into the directories) then +1 is added, if backward then -1 is added to the variable's value at that time. 0 represents no movement(i.e. currently in the starting directory), -1(can be up-to -infinity) represents currently in the parent directory relative to the starting directory and similarly +1(can be up-to +infinity) represents currently in the child's directory relative to starting directory
 
@@ -315,6 +318,34 @@ class manage(object):
 
 			self.pre_printer()
 
+	def Jump(self, jumpchar): #Jump to filename/dirname starting with the given character.
+
+		self.update_dims()
+
+		self.jumpchar = jumpchar
+
+		self.first_chars = [ord(x[0].lower()) for x in self.dir_items] #A list containing first characters of elements of dir_items.
+
+
+
+
+		# if not self.items_onscreen[self.selected][0] == self.jumpchar:
+
+
+
+
+		try:
+
+			self.jumpindex = self.first_chars.index(self.jumpchar) #Index of the required element in dir_items.
+
+		except ValueError:
+
+			return False #Returning because we do not want signal to be stored since the signal wasn't executed.
+
+		self.SIG = 5 #5 key when any jumpchar key is pressed eg: a, b, g, z, 5, 9, 1...
+
+		self.pre_printer()
+
 	def pre_printer(self):
 
 		self.update_dims()
@@ -347,7 +378,7 @@ class manage(object):
 
 		elif self.SIG==4: #END Key
 
-			if len(self.dir_items) > self.dims[0] - 2 :
+			if len(self.dir_items) > self.dims[0] - 2:
 
 				self.selected = self.dims[0] - 3
 
@@ -358,6 +389,46 @@ class manage(object):
 				self.selected = len(self.dir_items)-1
 
 
+		elif self.SIG==5: #Jumpchar keys.
+
+			self.screen_start = self.dir_items.index(self.items_onscreen[0]) #Position of first item(on screen) in dir_items.
+
+			self.screen_end = self.screen_start + (self.dims[0] - 3) #Position of last item(on screen) in dir_items.
+
+			if self.screen_start <= self.jumpindex <= self.screen_end: #If the item we are looking for is on the screen then simply change self.selected value to select that.
+
+
+
+
+				# if self.selected == self.jumpindex: #If we are on(selected that) the item we are looking for then...
+	
+				# 	if self.jumpchar == self.first_chars[self.jumpindex+1]: #Check if the next item start with the same jumpchar
+
+				# 		self.jumpindex = self.jumpindex + 1 #Move to that element/item.
+
+				# 		self.SIG = 5
+
+				# 		self.pre_printer() # Apply the change
+
+
+
+				self.selected = self.jumpindex - self.screen_start
+
+			else: #If the item we are looking for is not on the screen then...
+
+				if self.jumpindex > self.screen_start + self.selected: #If index of required element is greater than the index we are on(selected item index.) then show selection at the end.
+
+					self.slice_start = self.jumpindex - (self.dims[0] - 3)
+
+					self.selected = self.dims[0] - 3
+
+				else: #If index of required element is lesser than the index we are on(selected element index) then show selection at the top.
+
+					self.slice_start = self.jumpindex
+
+					self.selected = 0
+
+		#Finally passing arguments to printer.
 		self.printer(self.slice_start, (self.dims[0]-2)+self.slice_start)
 
 		#Preserves self.slice_start value to be used in refreshing.
@@ -434,6 +505,10 @@ while q!=81: #ASCII code 81 = 'Q'
 	elif q==curses.KEY_END:
 
 		browser.goto_END()
+
+	elif q in [ord(x) for x in printable]:
+
+		browser.Jump(q)
 
 	screen.timeout(100)
 
