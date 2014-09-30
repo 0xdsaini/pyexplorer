@@ -130,7 +130,7 @@ class manage(object):
 
 		self.origin = origin #Defining 'self.origin' variable is useless here. But defined as per standard.
 
-		os.chdir(self.origin) #Initially changing initial path. Note: 'self.Chdir()' is not allowed to do this as it only takes input from self.items_onscreen and self.selected
+		os.chdir(self.origin) #Changing the initial path. We are not doing this with self.Chdir() method since we do not want to change self.dir_navigation(their is a possibility for changing this if done with self.Chdir() method.) and also don't want to set Signals since everything is intial.
 
 		curses.start_color()
 
@@ -251,9 +251,11 @@ class manage(object):
 		else:
 			self.extra_paths = ['.', '..']
 			
-	def Chdir(self): #A changing directory method which selects directory from selected region i.e. from self.selected, self.items_onscreen etc.
+	def Chdir(self, switch_dir='.'): #A directory changing method which selects directory from selected region i.e. from self.selected, self.items_onscreen etc.
 
-		switch_dir = self.items_onscreen[self.selected]
+		if switch_dir=='.': #When variable is not set by user
+
+			switch_dir = self.items_onscreen[self.selected]
 
 		if os.path.isdir(switch_dir):
 			
@@ -268,7 +270,7 @@ class manage(object):
 			else:
 				self.dir_navigations+=1
 
-			self.switch_extra_paths()
+			self.switch_extra_paths() #Updates the self.extra_paths variable.
 
 			self.dir_items = self.extra_paths+os.listdir('.')
 			
@@ -322,33 +324,56 @@ class manage(object):
 
 		self.update_dims()
 
-		self.jumpchar = jumpchar
-
 		self.first_chars = [ord(x[0].lower()) for x in self.dir_items] #A list containing first characters of elements of dir_items.
 
+		if self.SIG == 5: #If last signal was a jumpchar signal then...
 
+			if self.jumpchar == jumpchar: #...If the given character jumpchar is same as last one then...
 
+				try: #...try to get next element's first character. (Try-except here for managing Index-error exception)
 
-		# if not self.items_onscreen[self.selected][0] == self.jumpchar:
+					if self.first_chars[self.jumpindex+1] == self.jumpchar:
 
+						self.jumpindex += 1
 
+						self.pre_printer()
 
+						return True
 
-		try:
+					else: pass #We have passed it instead of returning something(breaking everything here) since selection is now at the end of possible element and we want to return to the first filename/dirname of pressed character on keyboard.
 
-			self.jumpindex = self.first_chars.index(self.jumpchar) #Index of the required element in dir_items.
+				except IndexError: pass #Same here as "else: pass" says.
+
+			else: pass #Same here.
+
+		else: pass #Same here
+
+		try: #try-except here because there is possibility that no key available at that index.
+
+			self.jumpindex = self.first_chars.index(jumpchar) #Index of the required element in dir_items.
 
 		except ValueError:
 
 			return False #Returning because we do not want signal to be stored since the signal wasn't executed.
 
+		self.jumpchar = jumpchar
+
 		self.SIG = 5 #5 key when any jumpchar key is pressed eg: a, b, g, z, 5, 9, 1...
+
+		self.pre_printer()
+
+	def goto_BACK(self):
+
+		self.Chdir(switch_dir='..')
+
+		self.SIG = 6 #Signal 6 -> Backspace key
 
 		self.pre_printer()
 
 	def pre_printer(self):
 
 		self.update_dims()
+
 
 		if self.SIG==-1: #UP Arrow Key
 			
@@ -396,21 +421,6 @@ class manage(object):
 			self.screen_end = self.screen_start + (self.dims[0] - 3) #Position of last item(on screen) in dir_items.
 
 			if self.screen_start <= self.jumpindex <= self.screen_end: #If the item we are looking for is on the screen then simply change self.selected value to select that.
-
-
-
-
-				# if self.selected == self.jumpindex: #If we are on(selected that) the item we are looking for then...
-	
-				# 	if self.jumpchar == self.first_chars[self.jumpindex+1]: #Check if the next item start with the same jumpchar
-
-				# 		self.jumpindex = self.jumpindex + 1 #Move to that element/item.
-
-				# 		self.SIG = 5
-
-				# 		self.pre_printer() # Apply the change
-
-
 
 				self.selected = self.jumpindex - self.screen_start
 
@@ -509,6 +519,10 @@ while q!=81: #ASCII code 81 = 'Q'
 	elif q in [ord(x) for x in printable]:
 
 		browser.Jump(q)
+
+	elif q==curses.KEY_BACKSPACE:
+
+		browser.goto_BACK()
 
 	screen.timeout(100)
 
