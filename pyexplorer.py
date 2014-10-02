@@ -259,28 +259,30 @@ class manage(object):
 
 		if os.path.isdir(switch_dir):
 			
-			os.chdir(switch_dir) #Changing the current working directory.
+			if not (self.dir_navigations==0 and (not self.parent_navigation)) or switch_dir!='..': #Specially for goto_HOME method to block navigation to previous(..) directory on False parent_navigation
 
-			if switch_dir=='..':
-				self.dir_navigations-=1
+				os.chdir(switch_dir) #Changing the current working directory.
 
-			elif switch_dir=='.':
-				pass
+				if switch_dir=='..':
+					self.dir_navigations-=1
 
-			else:
-				self.dir_navigations+=1
+				elif switch_dir=='.':
+					pass
 
-			self.switch_extra_paths() #Updates the self.extra_paths variable.
+				else:
+					self.dir_navigations+=1
 
-			self.dir_items = self.extra_paths+os.listdir('.')
-			
-			self.sorter() #Sorting current directory items in alphabetical order.
+				self.switch_extra_paths() #Updates the self.extra_paths variable.
 
-			self.selected = 0
+				self.dir_items = self.extra_paths+os.listdir('.')
+				
+				self.sorter() #Sorting current directory items in alphabetical order.
 
-			self.SIG = 2 #Enter pressed Signal. SIG = 2
+				self.selected = 0
 
-			self.pre_printer()
+				self.SIG = 2 #Enter pressed Signal. SIG = 2
+
+				self.pre_printer()
 
 	def goto_Home(self):
 
