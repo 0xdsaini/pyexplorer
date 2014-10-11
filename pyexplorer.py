@@ -7,6 +7,7 @@ from string import printable
 from time import sleep
 from sys import argv
 from termcolor import colored
+import keybinds #A self developed module for managing key bindings.
 
 def check_arguments(arguments, ideal_arguments):
 
@@ -90,7 +91,7 @@ set_defaults() #Setting up default values to command line argument variables.
 
 str_booleans = ("True", "true", '1', "False", "false", '0') #A variable containing set of string versions of boolean "True" and "False".
 
-#Setting up command-line arguments.
+#Setting up command-line arguments below.
 
 if len(argv[1:])>0: #If user has given arguments
 			
@@ -324,6 +325,8 @@ class manage(object):
 
 	def Jump(self, jumpchar): #Jump to filename/dirname starting with the given character.
 
+		jumpchar = ord(chr(jumpchar).lower())
+
 		self.update_dims()
 
 		self.first_chars = [ord(x[0].lower()) for x in self.dir_items] #A list containing first characters of elements of dir_items.
@@ -332,7 +335,7 @@ class manage(object):
 
 			if self.jumpchar == jumpchar: #...If the given character jumpchar is same as last one then...
 
-				try: #...try to get next element's first character. (Try-except here for managing Index-error exception)
+				try: #...try to get next dir_item's element's first character. (Try-except here for managing Index-error exception)
 
 					if self.first_chars[self.jumpindex+1] == self.jumpchar:
 
@@ -479,7 +482,7 @@ class manage(object):
 					self.color_pair = 1
 					self.bold = 0
 
-			#Current working directory. Top of window.
+			#Current working directory. Visible at the top of window.
 			screen.addstr(0, 0, center(os.getcwd(), self.dims[1]-10), curses.color_pair(3) | self.BOLD[1])
 
 			#Credits to Developer.
@@ -491,10 +494,12 @@ class manage(object):
 	def end(self):
 		curses.endwin()
 
+keybinds.load_keybinds() #Loaded key:values as variable=value in global scope.
+
 browser = manage(parent_navigation, show_hidden, origin)
 q = 0
 
-while q!=81: #ASCII code 81 = 'Q'
+while q!=keybinds.quit: #ASCII code 81 = 'Q'
 
 	q = screen.getch()
 
@@ -502,27 +507,27 @@ while q!=81: #ASCII code 81 = 'Q'
 
 		browser.Chdir()
 
-	elif q==curses.KEY_DOWN:
+	elif q==keybinds.MoveDown:
 
 		browser.Move_Down()
 
-	elif q==curses.KEY_UP:
+	elif q==keybinds.MoveUp:
 
 		browser.Move_Up()
 
-	elif q==curses.KEY_HOME:
+	elif q==keybinds.goto_First:
 
 		browser.goto_Home()
 
-	elif q==curses.KEY_END:
+	elif q==keybinds.goto_Last:
 
 		browser.goto_END()
 
-	elif q in [ord(x) for x in printable]:
+	elif q in [ord(x) for x in keybinds.Jumper_alphabets]:
 
 		browser.Jump(q)
 
-	elif q==curses.KEY_BACKSPACE:
+	elif q==keybinds.goto_Back:
 
 		browser.goto_BACK()
 
