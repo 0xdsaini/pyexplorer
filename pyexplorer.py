@@ -3,79 +3,10 @@
 import curses
 import os
 from string import center
-from string import printable
-from time import sleep
 from sys import argv
 from termcolor import colored
-import keybinds #A self developed module for managing key bindings.
-
-def check_arguments(arguments, ideal_arguments):
-
-	invalid_arguments = [] #Will contain 'key' if value in that key:value pair is invalid.
-
-	#Checking for normal arguments.
-	for arg in arguments.keys():
-
-		try: #Try-except here since there are some arguments which are not defined in ideal_arguments.
-			if not arguments[arg] in allowed_args[arg]:
-
-				invalid_arguments.append(arg)
-
-		except KeyError: pass
-
-	#Cheking for directory existence.
-	try: #try-except since 'origin' may not exist in arguments dict.
-		if not os.path.isdir(arguments['origin']):
-			invalid_arguments.append('origin')
-
-	except KeyError:
-		pass
-
-	if len(invalid_arguments)==0: #No invalid arguments, returns a tuple containing True at 0th positions
-		return (False, None)
-
-	else: #Invalid arguments exist, returns a tuple containing 'False' at 0th position.
-		return (True, invalid_arguments)
-
-def invalid_arg_reporter(arguments, invalid_arguments, do_exit=False): #On printing arguments, if exit is True, then exists the applications.
-
-	os.system("clear")
-
-	print "\n Please check your argument values:- \n"
-
-	for index, arg in enumerate(arguments.keys()):
-
-		if arg in invalid_arguments:
-			print " "+str(index+1)+". "+arg+"="+colored(arguments[arg], color='white', on_color='on_red') #Print the key first and value with 'red' background. eg:- key=red_colored(value). It's red because this value will always be wrong.
-
-		else:
-			print " "+str(index+1)+". "+arg+"="+colored(arguments[arg], color='white', on_color='on_green') #Print the key first and value with 'green' background eg:- key=green_colored(value). It's red because this value will always be right.
-
-	if do_exit:
-
-		print #A horizontal space before leaving.
-		exit()
-
-def change_types(arguments):
-
-	for key in arguments.keys():
-
-		value = arguments[key]
-
-		#Changing to boolean value if 'value' can be changed to boolean i.e. if 'value' is "True" or "False" written as strings.
-		if value in ("True", "true", 1):
-			arguments[key] = True
-
-		elif value in ("False", "false", 0):
-			arguments[key] = False
-
-		#Changing to integer value if 'value' can be changed to integer i.e. if 'value' is a integer written as string.
-		try: 
-			arguments[key] = int(value)
-
-		except:continue
-
-	return arguments
+import keybinds #Self developed module for managing key bindings.
+import cmd_args #Self developed module for managing command line arguments.
 
 def set_defaults(): #Sets default values to command line argument variables.
 
@@ -89,30 +20,12 @@ def set_defaults(): #Sets default values to command line argument variables.
 
 set_defaults() #Setting up default values to command line argument variables.
 
-str_booleans = ("True", "true", '1', "False", "false", '0') #A variable containing set of string versions of boolean "True" and "False".
+#Setting up command-line arguments
+arguments = cmd_args.getargs(argv) #Getting command-line arguments dictionary. This module function also manages with errors.
 
-#Setting up command-line arguments below.
+if len(arguments)>0:
 
-if len(argv[1:])>0: #If user has given arguments
-			
-	arguments = {} # An key:value version of command-line arguments i.e. argv[1:]
-
-	for arg in argv[1:]: #Leaving the first element i.e. the filename.
-
-		key, value = arg.split('=')
-		arguments[key] = value
-
-	allowed_args = {'show_hidden': str_booleans, 'parent_navigation': str_booleans} #These are the possible arguments and their respective possible values.
-
-	invalid_arguments = check_arguments(arguments, allowed_args)
-
-	if invalid_arguments[0]: #The first index i.e. 0th index will always be a boolean value i.e. True or False.
-
-		invalid_arg_reporter(arguments, invalid_arguments[1], do_exit=True) # do exit if their is even one invalid argument value present.
-
-	arguments = change_types(arguments) #Changing types if possible. Read comment inside that function.
-
-	globals().update(arguments) #Variables declaration. eg:- parent_navigation, show_hidden etc.
+	globals().update(arguments) #Variables declaration in global scope eg:- parent_navigation, show_hidden etc.
 
 #Initializes curses screen.
 screen = curses.initscr()
@@ -488,13 +401,13 @@ class manage(object):
 			#Credits to Developer.
 			screen.addstr(self.dims[0]-1, self.dims[1]-len(" "+self.credits+" ")-1, " "+self.credits+" ", curses.color_pair(5) | self.BOLD[1])
 
-			#Printing elements and backgrounds.
+			#Printing elements(Directories and Files.) and backgrounds.
 			screen.addstr(y+1, self.x, " "+dir_item+(self.dims[1]-len(dir_item)-1)*" ", curses.color_pair(self.color_pair) | self.BOLD[self.bold])
 
-	def end(self):
+	def end(self): #To exit curses environment(opposite of initstr() method of curses). Restores previous terminal configuration.
 		curses.endwin()
 
-keybinds.load_keybinds() #Loaded key:values as variable=value in global scope.
+keybinds.load_keybinds() #Loaded key:values as variable=value in global scope. For details :- See "keybinds.py" source code.
 
 browser = manage(parent_navigation, show_hidden, origin)
 q = 0
