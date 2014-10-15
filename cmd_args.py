@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+import os
+from termcolor import colored
+
 def _check_arguments_(arguments, ideal_arguments):
 
 	invalid_arguments = [] #Will contain 'key' if value in that key:value pair is invalid.
@@ -73,6 +76,8 @@ def getargs(argv):
 	#Setting up command-line arguments below.
 
 	str_booleans = ("True", "true", '1', "False", "false", '0') #A variable containing set of string versions of boolean "True" and "False".
+
+	global allowed_args
 
 	if len(argv[1:])>0: #If user has given arguments
 				
