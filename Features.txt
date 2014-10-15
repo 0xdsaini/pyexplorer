@@ -1,4 +1,4 @@
-#Contains features of upcoming versions.
+#Contains features of old and upcoming versions.
 1 - Bug in navigating to previous directory with Backspace even on parent_navigation=False at origin [[Fixed]].
 
 2 - [[Keybindings Support v0.1]] - Support to customize key actions through a file named "keybinds".
