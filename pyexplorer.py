@@ -248,7 +248,7 @@ class manage(object):
 		self.update_dims()
 
 		self.SIG = 7
-		
+
 		self.pre_printer()
 
 	def Buffer_Down(self):
@@ -379,7 +379,7 @@ class manage(object):
 
 					self.selected = 0
 
-		elif self.SIG==7:
+		elif self.SIG==7: #Buffering Up
 
 			if self.move_buffer=='page':
 
@@ -403,7 +403,11 @@ class manage(object):
 
 					self.slice_start = slice_start
 
-		elif self.SIG==8:
+				else:
+
+					self.slice_start = 0
+
+		elif self.SIG==8: #Buffering Down
 
 			if self.move_buffer=='page':
 

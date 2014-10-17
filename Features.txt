@@ -1,5 +1,6 @@
 #Contains features of old and upcoming versions.
-1 - Bug in navigating to previous directory with Backspace even on parent_navigation=False at origin [[Fixed]].
+
+1 - [[Bug Fixed]] Navigation to previous directory possible with Backspace even on parent_navigation=False at origin.
 
 2 - [[Keybindings Support v0.1]] - Support to customize key actions through a file named "keybinds".
 
@@ -7,3 +8,5 @@
 						(ii) Command line option added to support for buffer jumpers(Page UP/Page Down)- "buff=<any integer>" or "buff=<string value 'page'>" {Modified "cmd_args.py"}
 						
 						(iii) Keybindings support added - Default keybindings edited to support "Page Up" and "Page Down" {Modified "keybinds"}
+
+4 - [[Bug Fixed]] - Page Up Jumping not works not reaching an element where the element index is one or more less than buffer. You need to experience to get the Bug.
