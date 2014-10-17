@@ -248,10 +248,7 @@ class manage(object):
 		self.update_dims()
 
 		self.SIG = 7
-
-		screen.addstr(10, 10, "Buffer Up")
-		screen.getch()
-
+		
 		self.pre_printer()
 
 	def Buffer_Down(self):
