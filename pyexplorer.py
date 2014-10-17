@@ -10,13 +10,15 @@ import cmd_args #Self developed module for managing command line arguments.
 
 def set_defaults(): #Sets default values to command line argument variables.
 
-	global parent_navigation, show_hidden, origin
+	global parent_navigation, show_hidden, origin, buff
 
 	parent_navigation = True
 
 	show_hidden = False
 
 	origin = '.'
+
+	buff = 'page'
 
 set_defaults() #Setting up default values to command line argument variables.
 
@@ -34,7 +36,7 @@ screen.keypad(1) #Enable use of curses.KEY_UP, curses.KEY_DOWN etc. if it is ena
 
 class manage(object):
 	
-	def __init__(self, parent_navigation, show_hidden, origin): #previous_directories a bool value which means wheather to include .. in the contents of current directories or not.
+	def __init__(self, parent_navigation, show_hidden, origin, move_buffer): #previous_directories a bool value which means wheather to include .. in the contents of current directories or not.
 
 		self.update_dims() #getting screen dimensions.
 		
@@ -43,6 +45,8 @@ class manage(object):
 		self.show_hidden = show_hidden
 
 		self.origin = origin #Defining 'self.origin' variable is useless here. But defined as per standard.
+
+		self.move_buffer = move_buffer
 
 		os.chdir(self.origin) #Changing the initial path. We are not doing this with self.Chdir() method since we do not want to change self.dir_navigation(their is a possibility for changing this if done with self.Chdir() method.) and also don't want to set Signals since everything is intial.
 
@@ -61,7 +65,7 @@ class manage(object):
 
 		self.BOLD = [curses.A_NORMAL, curses.A_BOLD]
 
-		screen.bkgd(" ", curses.color_pair(1)) #Foreground and Background color pair set to be 1st
+		screen.bkgd(" ", curses.color_pair(1)) #Foreground and Background color pair set from first pair.
 
 		curses.noecho() #No echo of typed character.
 
@@ -72,7 +76,10 @@ class manage(object):
 		self.q = 0
 
 		self.color_pair = 1
+
 		self.selected = 0
+
+		self.global_selected = 0
 
 		self.jumpchar = '.' #Initial jump character.
 
@@ -86,7 +93,7 @@ class manage(object):
 
 		self.sorter() #Sorts dir_items. See comments in sorter method.
 
-		self.slice_start = 0 #Starts slicing the dir_items from value 0 by default.
+		self.slice_start = 0 #Starts slicing the dir_items from value 0 by default i.e. start printing from first item/element(file/directory.).
 
 		self.SIG = 0 #define SIG:- Stands for "Signal" and means to recent key action. -1 represents KEY_UP, +1 represents KEY_DOWN, +2 represents ENTER, +3 represents HOME, +4 represents END and 0 represents initial State(i.e. no key pressed since the program was started).
 
@@ -236,6 +243,25 @@ class manage(object):
 
 			self.pre_printer()
 
+	def Buffer_Up(self):
+
+		self.update_dims()
+
+		self.SIG = 7
+
+		screen.addstr(10, 10, "Buffer Up")
+		screen.getch()
+
+		self.pre_printer()
+
+	def Buffer_Down(self):
+
+		self.update_dims()
+
+		self.SIG = 8
+
+		self.pre_printer()
+
 	def Jump(self, jumpchar): #Jump to filename/dirname starting with the given character.
 
 		jumpchar = ord(chr(jumpchar).lower())
@@ -356,6 +382,58 @@ class manage(object):
 
 					self.selected = 0
 
+		elif self.SIG==7:
+
+			if self.move_buffer=='page':
+
+				move_buffer = len(self.items_onscreen) - 1 #Not changing the value in self.move_buffer since if it is changed then it will be maintained till the end of the program life and in between its life, if directory is changed then that value shows if defect(move with buffer which was previously obtained from previous directory) eg:- If a dir contains 10 elements(then self.move_buffer will be set to 10) but if we have switched to its child/parent directory and if it have 50 elements(on screen) then Paging down will result in jumping to 10th element(buffer 10) again and again instead of jumping 50 elements
+
+			else:
+
+				move_buffer = self.move_buffer
+
+			if self.selected - move_buffer >= 0:
+
+				self.selected-=move_buffer
+
+			elif self.selected - move_buffer < 0:
+
+				slice_start = self.dir_items.index(self.items_onscreen[0]) + self.selected - move_buffer
+
+				self.selected = 0
+
+				if slice_start >= 0:
+
+					self.slice_start = slice_start
+
+		elif self.SIG==8:
+
+			if self.move_buffer=='page':
+
+				move_buffer = len(self.items_onscreen) - 1 #Not changing the value in self.move_buffer since if it is changed then it will be maintained till the end of the program life and in between its life, if directory is changed then that value shows if defect(move with buffer which was previously obtained from previous directory) eg:- If a dir contains 10 elements(then self.move_buffer will be set to 10) but if we have switched to its child/parent directory and if it have 50 elements(on screen) then Paging down will result in jumping to 10th element(buffer 10) again and again instead of jumping 50 elements
+
+			else:
+
+				move_buffer = self.move_buffer
+
+			if self.dir_items.index(self.items_onscreen[0]) + (self.selected+move_buffer) > len(self.dir_items) - 1: #If needed(upcoming) item/element is out of max range of dir_items then...
+
+				self.slice_start = len(self.dir_items) - len(self.items_onscreen) #Start slicing in such a way that it is the last page(i.e no other slicing provides last element of dir_items at the very last of current y-dimension) and
+
+				self.selected = len(self.items_onscreen) - 1 #and selects the last element. OVER!
+
+			elif move_buffer <= (len(self.items_onscreen)-1) - self.selected:
+
+				self.selected += move_buffer
+
+			elif move_buffer > (len(self.items_onscreen)-1) -self.selected:
+
+				self.screen_start = self.dir_items.index(self.items_onscreen[0]) #Position of first item(on screen) in dir_items.
+
+				self.slice_start = self.screen_start + move_buffer - ((len(self.items_onscreen)-1) - self.selected)
+
+				self.selected = len(self.items_onscreen)-1 #Selects last element on the screen.
+
 		#Finally passing arguments to printer.
 		self.printer(self.slice_start, (self.dims[0]-2)+self.slice_start)
 
@@ -409,7 +487,7 @@ class manage(object):
 
 keybinds.load_keybinds() #Loaded key:values as variable=value in global scope. For details :- See "keybinds.py" source code.
 
-browser = manage(parent_navigation, show_hidden, origin)
+browser = manage(parent_navigation, show_hidden, origin, buff)
 q = 0
 
 while q!=keybinds.quit: #ASCII code 81 = 'Q'
@@ -435,6 +513,14 @@ while q!=keybinds.quit: #ASCII code 81 = 'Q'
 	elif q==keybinds.goto_Last:
 
 		browser.goto_END()
+
+	elif q==keybinds.BufferUp:
+
+		browser.Buffer_Up()
+
+	elif q==keybinds.BufferDown:
+
+		browser.Buffer_Down()
 
 	elif q in [ord(x) for x in keybinds.Jumper_alphabets]:
 

@@ -1,16 +1,18 @@
 #!/usr/bin/env python
 
 import os
+import sys
 from termcolor import colored
 
-def _check_arguments_(arguments, ideal_arguments):
+def _check_arguments_(arguments):
 
 	invalid_arguments = [] #Will contain 'key' if value in that key:value pair is invalid.
 
 	#Checking for normal arguments.
 	for arg in arguments.keys():
 
-		try: #Try-except here since there are some arguments which are not defined in ideal_arguments.
+		try: #Try-except here since there are some arguments(keys) which are not defined in allowed_arguments. So, allowed_args[arg] will cause error.
+
 			if not arguments[arg] in allowed_args[arg]:
 
 				invalid_arguments.append(arg)
@@ -19,11 +21,20 @@ def _check_arguments_(arguments, ideal_arguments):
 
 	#Cheking for directory existence.
 	try: #try-except since 'origin' may not exist in arguments dict.
+
 		if not os.path.isdir(arguments['origin']):
+
 			invalid_arguments.append('origin')
 
-	except KeyError:
-		pass
+	except KeyError: pass
+
+	try: #try-except since 'buff' i.e. 'buffer' may not exist in arguments dict.
+
+		if not (arguments['buff'] in ['page'] or arguments['buff'].isdigit()):
+
+			invalid_arguments.append('buff')
+
+	except KeyError: pass
 
 	if len(invalid_arguments)==0: #No invalid arguments, returns a tuple containing True at 0th positions
 		return (False, None)
@@ -90,9 +101,9 @@ def getargs(argv):
 
 		allowed_args = {'show_hidden': str_booleans, 'parent_navigation': str_booleans} #These are the possible arguments and their respective possible values.
 
-		invalid_arguments = _check_arguments_(arguments, allowed_args)
+		invalid_arguments = _check_arguments_(arguments)
 
-		if invalid_arguments[0]: #The first index i.e. 0th index will always be a boolean value i.e. True or False.
+		if invalid_arguments[0]: #The first index i.e. 0th index will always be a boolean value i.e. True or False as defined in function _check_arguments_()
 
 			_invalid_arg_reporter_(arguments, invalid_arguments[1], do_exit=True) # do exit if their is even one invalid argument value present.
 
@@ -101,3 +112,7 @@ def getargs(argv):
 		return arguments
 
 	else: return () #Returns an zero length tuple.
+
+if __name__=="__main__":
+
+	print getargs(sys.argv)

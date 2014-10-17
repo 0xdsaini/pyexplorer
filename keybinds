@@ -1,1 +1,1 @@
-{"MoveUp":"KEY_UP", "MoveDown":"KEY_DOWN", "goto_Back":"KEY_BACKSPACE", "goto_First":"KEY_HOME", "goto_Last":"KEY_END", "Jumper_alphabets":"lowercase", "quit":"Q"}
+{"MoveUp":"KEY_UP", "MoveDown":"KEY_DOWN", "goto_Back":"KEY_BACKSPACE", "goto_First":"KEY_HOME", "goto_Last":"KEY_END", "Jumper_alphabets":"lowercase", "quit":"Q", "BufferUp":"KEY_PPAGE", "BufferDown":"KEY_NPAGE"}

@@ -2,3 +2,8 @@
 1 - Bug in navigating to previous directory with Backspace even on parent_navigation=False at origin [[Fixed]].
 
 2 - [[Keybindings Support v0.1]] - Support to customize key actions through a file named "keybinds".
+
+3 - [[Feature Added]] - (i) Support For Buffer Up(Page up) and Buffer Down(Page Down) Jumpers with customizable buffers {Modified "pyexplorer.py"}
+						(ii) Command line option added to support for buffer jumpers(Page UP/Page Down)- "buff=<any integer>" or "buff=<string value 'page'>" {Modified "cmd_args.py"}
+						
+						(iii) Keybindings support added - Default keybindings edited to support "Page Up" and "Page Down" {Modified "keybinds"}
