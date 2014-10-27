@@ -85,11 +85,15 @@ class manage(object):
 
 		self.dir_navigations = 0 #Stats the number of forward movements or backward movements in terms of numbers. It can be considered as 1 dimensional "vector" quantity. As we move forward(i.e. enters into the directories) then +1 is added, if backward then -1 is added to the variable's value at that time. 0 represents no movement(i.e. currently in the starting directory), -1(can be up-to -infinity) represents currently in the parent directory relative to the starting directory and similarly +1(can be up-to +infinity) represents currently in the child's directory relative to starting directory
 
-		self.switch_extra_paths() #Creates a extra_paths variable that will be used to define dir_items i.e. immediately following line below.
+		self.switch_extra_paths() #Creates a extra_paths variable(self.extra_paths) that will be used to define dir_items i.e. immediately following line below.
 
 		self.dir_items = self.extra_paths+os.listdir('.') #For initialization, it is needed, even Chdir method needs that dir_items should already exist.
 
 		self.items_onscreen = self.dir_items #Items that will be shown on the screen.
+
+		self.screen_range = [] #Range in which items(dirs, files) can occupy whole screen.
+
+		self.update_data() #See method's own comments.
 
 		self.sorter() #Sorts dir_items. See comments in sorter method.
 
@@ -101,14 +105,26 @@ class manage(object):
 
 		self.pre_printer()
 
-	def refresh(self):
+	def update_data(self): #Updates screen dimensions, global_selected and screen_range.
 
-		if curses.is_term_resized(self.dims[0], self.dims[1]):
-			self.pre_printer()
+		self.update_dims()
+
+		self.global_selected = self.dir_items.index(self.items_onscreen[0]) + self.selected
+
+		start = self.global_selected-self.selected
+		end = start + self.dims[0]-3 
+
+		self.screen_range = [start, end]
 
 	def update_dims(self):
 
 		self.dims = screen.getmaxyx()
+
+	def refresh(self):
+
+		if curses.is_term_resized(self.dims[0], self.dims[1]):
+
+			self.pre_printer()
 
 	def sorter(self): #Breaks dir_items into two lists containing directories and files. Sort them individually in alphabetical order(lower case first) and them combines them.
 
@@ -199,7 +215,7 @@ class manage(object):
 				
 				self.sorter() #Sorting current directory items in alphabetical order.
 
-				self.selected = 0
+				self.selected = 0 #Reset self.selected on dir change.
 
 				self.SIG = 2 #Enter pressed Signal. SIG = 2
 
@@ -315,12 +331,19 @@ class manage(object):
 
 		self.update_dims()
 
+		if self.SIG==257:
+			pass
+
+#			selected_from_end = (len(self.dir_items)-1) - self.global_selected
+
+
 
 		if self.SIG==-1: #UP Arrow Key
 			
 			if self.selected==-1: #Selected out of screen range in upper side. It simply means user requests for upper elements.
 				
 				self.selected+=1
+
 				self.slice_start-=1
 
 
@@ -329,6 +352,7 @@ class manage(object):
 			if self.selected==self.dims[0]-2: #Selected out of screen range in downward side. It simply means user requests for more elements from downwards.
 
 				self.selected-=1
+
 				self.slice_start+=1
 
 
@@ -357,17 +381,15 @@ class manage(object):
 
 		elif self.SIG==5: #Jumpchar keys.
 
-			self.screen_start = self.dir_items.index(self.items_onscreen[0]) #Position of first item(on screen) in dir_items.
+			self.update_data() #Updating screen range
 
-			self.screen_end = self.screen_start + (self.dims[0] - 3) #Position of last item(on screen) in dir_items.
+			if self.screen_range[0] <= self.jumpindex <= self.screen_range[1]: #If the item we are looking for is on the screen then simply change self.selected value to select that.
 
-			if self.screen_start <= self.jumpindex <= self.screen_end: #If the item we are looking for is on the screen then simply change self.selected value to select that.
-
-				self.selected = self.jumpindex - self.screen_start
+				self.selected = self.jumpindex - self.screen_range[0]
 
 			else: #If the item we are looking for is not on the screen then...
 
-				if self.jumpindex > self.screen_start + self.selected: #If index of required element is greater than the index we are on(selected item index.) then show selection at the end.
+				if self.jumpindex > self.screen_range[0] + self.selected: #If index of required element is greater than the index we are on(selected item index.) then show selection at the end.
 
 					self.slice_start = self.jumpindex - (self.dims[0] - 3)
 
@@ -381,6 +403,8 @@ class manage(object):
 
 		elif self.SIG==7: #Buffering Up
 
+			self.update_data() #Updates self.global_selected
+
 			if self.move_buffer=='page':
 
 				move_buffer = len(self.items_onscreen) - 1 #Not changing the value in self.move_buffer since if it is changed then it will be maintained till the end of the program life and in between its life, if directory is changed then that value shows if defect(move with buffer which was previously obtained from previous directory) eg:- If a dir contains 10 elements(then self.move_buffer will be set to 10) but if we have switched to its child/parent directory and if it have 50 elements(on screen) then Paging down will result in jumping to 10th element(buffer 10) again and again instead of jumping 50 elements
@@ -391,11 +415,12 @@ class manage(object):
 
 			if self.selected - move_buffer >= 0:
 
-				self.selected-=move_buffer
+				self.selected -= move_buffer
 
 			elif self.selected - move_buffer < 0:
 
-				slice_start = self.dir_items.index(self.items_onscreen[0]) + self.selected - move_buffer
+
+				slice_start = self.global_selected - move_buffer
 
 				self.selected = 0
 
@@ -409,15 +434,17 @@ class manage(object):
 
 		elif self.SIG==8: #Buffering Down
 
-			if self.move_buffer=='page':
+			self.update_data()
+
+			if self.move_buffer=='page': #Page Down.
 
 				move_buffer = len(self.items_onscreen) - 1 #Not changing the value in self.move_buffer since if it is changed then it will be maintained till the end of the program life and in between its life, if directory is changed then that value shows if defect(move with buffer which was previously obtained from previous directory) eg:- If a dir contains 10 elements(then self.move_buffer will be set to 10) but if we have switched to its child/parent directory and if it have 50 elements(on screen) then Paging down will result in jumping to 10th element(buffer 10) again and again instead of jumping 50 elements
 
 			else:
 
-				move_buffer = self.move_buffer
+				move_buffer = self.move_buffer #Obtaining user defined value of move_buffer.
 
-			if self.dir_items.index(self.items_onscreen[0]) + (self.selected+move_buffer) > len(self.dir_items) - 1: #If needed(upcoming) item/element is out of max range of dir_items then...
+			if (self.global_selected + move_buffer) > len(self.dir_items) - 1: #If needed(upcoming) item/element is out of max range of dir_items then...
 
 				self.slice_start = len(self.dir_items) - len(self.items_onscreen) #Start slicing in such a way that it is the last page(i.e no other slicing provides last element of dir_items at the very last of current y-dimension) and
 
@@ -429,9 +456,7 @@ class manage(object):
 
 			elif move_buffer > (len(self.items_onscreen)-1) -self.selected:
 
-				self.screen_start = self.dir_items.index(self.items_onscreen[0]) #Position of first item(on screen) in dir_items.
-
-				self.slice_start = self.screen_start + move_buffer - ((len(self.items_onscreen)-1) - self.selected)
+				self.slice_start = self.screen_range[0] + move_buffer - ((len(self.items_onscreen)-1) - self.selected)
 
 				self.selected = len(self.items_onscreen)-1 #Selects last element on the screen.
 

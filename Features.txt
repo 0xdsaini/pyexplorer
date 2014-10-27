@@ -10,3 +10,5 @@
 						(iii) Keybindings support added - Default keybindings edited to support "Page Up" and "Page Down" {Modified "keybinds"}
 
 4 - [[Bug Fixed]] - Page Up Jumping not works not reaching an element where the element index is one or more less than buffer. You need to experience to get the Bug.
+
+5 - [[Update]] - Use of global selected(self.global_selected) to fix bugs(not in this commit, but may be found in upcoming commits). Their is a known bug when using Page Down and Arrow down, if we reach at last element(s) and resize our terminal, it(program) does not updates itself to fit the screen, instead it stays at that dimension when it was before(before resize). This bug exist in current commit too.
