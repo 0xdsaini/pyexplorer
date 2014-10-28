@@ -47,7 +47,7 @@ if use=='ftp':
 	except ftputil.error.FTPOSError:
 
 		print "\n 'ftp://"+str(ftp_host)+"'", "could not be resolved."
-		print "\n Please check your internet connection and make sure the host is up and running."
+		print "\n Please check your 'internet connection' and make sure the host is up and running."
 
 		print "\n Exiting...\n"
 
@@ -545,8 +545,13 @@ class manage(object):
 					self.color_pair = 1
 					self.bold = 0
 
+			cwd = ftp_os.getcwd() #Current working directory
+
+			if use=='ftp': #If on ftp connection, prefix "ftp://host" before working directory.
+				cwd = "ftp://"+ftp_host+cwd
+
 			#Current working directory. Visible at the top of window.
-			screen.addstr(0, 0, center(ftp_os.getcwd(), self.dims[1]-10), curses.color_pair(3) | self.BOLD[1])
+			screen.addstr(0, 0, center(cwd, self.dims[1]-10), curses.color_pair(3) | self.BOLD[1])
 
 			#Credits to Developer.
 			screen.addstr(self.dims[0]-1, self.dims[1]-len(" "+self.credits+" ")-1, " "+self.credits+" ", curses.color_pair(5) | self.BOLD[1])
@@ -559,7 +564,7 @@ class manage(object):
 
 keybinds.load_keybinds() #Loaded key:values as variable=value in global scope. For details :- See "keybinds.py" source code.
 
-browser = manage(parent_navigation, show_hidden, origin, buff)
+browser = manage(parent_navigation, show_hidden, origin, buff) 
 q = 0
 
 while q!=keybinds.quit: #ASCII code 81 = 'Q'

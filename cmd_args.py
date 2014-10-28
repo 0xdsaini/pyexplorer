@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import os
+from ftputil import FTPHost
 import sys
 from termcolor import colored
 
@@ -21,10 +22,16 @@ def _check_arguments_(arguments):
 
 	#Cheking for directory existence.
 	try: #try-except since 'origin' may not exist in arguments dict.
+		
+		try:
+			if not arguments['use']=='ftp':
+				if not os.path.isdir(arguments['origin']):
+					invalid_arguments.append('origin')
+		except:
 
-		if not os.path.isdir(arguments['origin']):
+			if not os.path.isdir(arguments['origin']):
 
-			invalid_arguments.append('origin')
+				invalid_arguments.append('origin')
 
 	except KeyError: pass
 
