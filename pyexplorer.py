@@ -21,7 +21,7 @@ def set_defaults(): #Sets default values to command line argument variables.
 
 	buff = 'page'
 
-	use = 'ftp'
+	use = 'local'
 
 	ftp_host = 'localhost'
 
