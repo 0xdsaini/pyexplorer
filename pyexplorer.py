@@ -2,6 +2,7 @@
 
 import curses
 import os
+import ftputil #A high-level ftplib interface.
 from string import center
 from sys import argv
 from termcolor import colored
@@ -10,7 +11,7 @@ import cmd_args #Self developed module for managing command line arguments.
 
 def set_defaults(): #Sets default values to command line argument variables.
 
-	global parent_navigation, show_hidden, origin, buff
+	global parent_navigation, show_hidden, origin, buff, use, ftp_host, ftp_user, ftp_pass
 
 	parent_navigation = True
 
@@ -20,6 +21,14 @@ def set_defaults(): #Sets default values to command line argument variables.
 
 	buff = 'page'
 
+	use = 'ftp'
+
+	ftp_host = 'localhost'
+
+	ftp_user = 'anonymous'
+
+	ftp_pass = ''
+
 set_defaults() #Setting up default values to command line argument variables.
 
 #Setting up command-line arguments
@@ -28,6 +37,43 @@ arguments = cmd_args.getargs(argv) #Getting command-line arguments dictionary. T
 if len(arguments)>0:
 
 	globals().update(arguments) #Variables declaration in global scope eg:- parent_navigation, show_hidden etc.
+
+#--------------------------------------
+if use=='ftp':
+
+	try:
+		ftp = ftputil.FTPHost(ftp_host, ftp_user, ftp_pass)
+
+	except ftputil.error.FTPOSError:
+
+		print "\n 'ftp://"+str(ftp_host)+"'", "could not be resolved."
+		print "\n Please check your internet connection and make sure the host is up and running."
+
+		print "\n Exiting...\n"
+
+		exit()
+
+	except ftputil.error.PermanentError:
+
+		print "\n Username or Password Invalid.\n"
+
+		print "\n Exiting...\n"
+		exit()
+
+	except:
+
+		print "\n Unknown Error"
+
+		print "\n Exiting...\n"
+		exit()
+		
+	ftp_os = ftp
+
+elif use=='local':
+
+	ftp_os = os
+
+#--------------------------------------
 
 #Initializes curses screen.
 screen = curses.initscr()
@@ -48,7 +94,7 @@ class manage(object):
 
 		self.move_buffer = move_buffer
 
-		os.chdir(self.origin) #Changing the initial path. We are not doing this with self.Chdir() method since we do not want to change self.dir_navigation(their is a possibility for changing this if done with self.Chdir() method.) and also don't want to set Signals since everything is intial.
+		ftp_os.chdir(self.origin) #Changing the initial path. We are not doing this with self.Chdir() method since we do not want to change self.dir_navigation(their is a possibility for changing this if done with self.Chdir() method.) and also don't want to set Signals since everything is intial.
 
 		curses.start_color()
 
@@ -87,7 +133,7 @@ class manage(object):
 
 		self.switch_extra_paths() #Creates a extra_paths variable(self.extra_paths) that will be used to define dir_items i.e. immediately following line below.
 
-		self.dir_items = self.extra_paths+os.listdir('.') #For initialization, it is needed, even Chdir method needs that dir_items should already exist.
+		self.dir_items = self.extra_paths+ftp_os.listdir('.') #For initialization, it is needed, even Chdir method needs that dir_items should already exist.
 
 		self.items_onscreen = self.dir_items #Items that will be shown on the screen.
 
@@ -128,13 +174,13 @@ class manage(object):
 
 	def sorter(self): #Breaks dir_items into two lists containing directories and files. Sort them individually in alphabetical order(lower case first) and them combines them.
 
-		self.dir_items = sorted(self.dir_items, key=os.path.isdir, reverse=True) #Output order - Directories first then Files.
+		self.dir_items = sorted(self.dir_items, key=ftp_os.path.isdir, reverse=True) #Output order - Directories first then Files.
 
 		dirs = []
 		files = []
 
 		for item in self.dir_items: #Seperates Directories and Files
-			if os.path.isdir(item):
+			if ftp_os.path.isdir(item):
 				dirs.append(item)
 			else:
 				files.append(item)
@@ -194,11 +240,11 @@ class manage(object):
 
 			switch_dir = self.items_onscreen[self.selected]
 
-		if os.path.isdir(switch_dir):
+		if ftp_os.path.isdir(switch_dir):
 			
 			if not (self.dir_navigations==0 and (not self.parent_navigation)) or switch_dir!='..': #Specially for goto_HOME method to block navigation to previous(..) directory on False parent_navigation
 
-				os.chdir(switch_dir) #Changing the current working directory.
+				ftp_os.chdir(switch_dir) #Changing the current working directory.
 
 				if switch_dir=='..':
 					self.dir_navigations-=1
@@ -211,7 +257,7 @@ class manage(object):
 
 				self.switch_extra_paths() #Updates the self.extra_paths variable.
 
-				self.dir_items = self.extra_paths+os.listdir('.')
+				self.dir_items = self.extra_paths+ftp_os.listdir('.')
 				
 				self.sorter() #Sorting current directory items in alphabetical order.
 
@@ -475,7 +521,7 @@ class manage(object):
 
 		for y, dir_item in enumerate(self.items_onscreen): #Setting configurations to color up directories when printed.
 
-			if os.path.isdir(dir_item):
+			if ftp_os.path.isdir(dir_item):
 				
 				dir_item = "+ "+dir_item
 				
@@ -487,7 +533,7 @@ class manage(object):
 					self.bold = 1
 					self.color_pair = 3
 
-			elif not os.path.isdir(dir_item): #Setting configurations to color up directories when printed.
+			elif not ftp_os.path.isdir(dir_item): #Setting configurations to color up directories when printed.
 				
 				dir_item = "  "+dir_item #Indentation because of symmetry with "+" before directory(ies) names.
 				
@@ -500,7 +546,7 @@ class manage(object):
 					self.bold = 0
 
 			#Current working directory. Visible at the top of window.
-			screen.addstr(0, 0, center(os.getcwd(), self.dims[1]-10), curses.color_pair(3) | self.BOLD[1])
+			screen.addstr(0, 0, center(ftp_os.getcwd(), self.dims[1]-10), curses.color_pair(3) | self.BOLD[1])
 
 			#Credits to Developer.
 			screen.addstr(self.dims[0]-1, self.dims[1]-len(" "+self.credits+" ")-1, " "+self.credits+" ", curses.color_pair(5) | self.BOLD[1])

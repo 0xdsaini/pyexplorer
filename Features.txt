@@ -4,11 +4,14 @@
 
 2 - [[Keybindings Support v0.1]] - Support to customize key actions through a file named "keybinds".
 
-3 - [[Feature Added]] - (i) Support For Buffer Up(Page up) and Buffer Down(Page Down) Jumpers with customizable buffers {Modified "pyexplorer.py"}
+3 - [[Feature Added]] [[Keybindings v0.2]] - (i) Support For Buffer Up(Page up) and Buffer Down(Page Down) Jumpers with customizable buffers {Modified "pyexplorer.py"}
 						(ii) Command line option added to support for buffer jumpers(Page UP/Page Down)- "buff=<any integer>" or "buff=<string value 'page'>" {Modified "cmd_args.py"}
-						
+
 						(iii) Keybindings support added - Default keybindings edited to support "Page Up" and "Page Down" {Modified "keybinds"}
 
 4 - [[Bug Fixed]] - Page Up Jumping not works not reaching an element where the element index is one or more less than buffer. You need to experience to get the Bug.
 
 5 - [[Update]] - Use of global selected(self.global_selected) to fix bugs(not in this commit, but may be found in upcoming commits). Their is a known bug when using Page Down and Arrow down, if we reach at last element(s) and resize our terminal, it(program) does not updates itself to fit the screen, instead it stays at that dimension when it was before(before resize). This bug exist in current commit too.
+
+6 - [[FTP Support]] - (i) Files and directory listing in different colors.
+					  (ii) Directory Switch.
