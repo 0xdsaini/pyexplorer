@@ -587,55 +587,62 @@ class manage(object):
 			screen.addstr(y+1, self.x, " "+dir_item+(self.dims[1]-len(dir_item)-1)*" ", curses.color_pair(self.color_pair) | self.BOLD[self.bold])
 
 	def end(self): #To exit curses environment(opposite of initstr() method of curses). Restores previous terminal configuration.
+
 		curses.endwin()
+		os.system("clear")
 
 keybinds.load_keybinds() #Loaded key:values as variable=value in global scope. For details :- See "keybinds.py" source code.
 
-browser = manage(parent_navigation, show_hidden, origin, buff) 
+browser = manage(parent_navigation, show_hidden, origin, buff)
 q = 0
 
-while q!=keybinds.quit: #ASCII code 81 = 'Q'
+try:
+	while q!=keybinds.quit: #ASCII code 81 = 'Q'
 
-	q = screen.getch()
+		q = screen.getch()
 
-	if q==10:
+		if q==10:
 
-		browser.Chdir()
+			browser.Chdir()
 
-	elif q==keybinds.MoveDown:
+		elif q==keybinds.MoveDown:
 
-		browser.Move_Down()
+			browser.Move_Down()
 
-	elif q==keybinds.MoveUp:
+		elif q==keybinds.MoveUp:
 
-		browser.Move_Up()
+			browser.Move_Up()
 
-	elif q==keybinds.goto_First:
+		elif q==keybinds.goto_First:
 
-		browser.goto_Home()
+			browser.goto_Home()
 
-	elif q==keybinds.goto_Last:
+		elif q==keybinds.goto_Last:
 
-		browser.goto_END()
+			browser.goto_END()
 
-	elif q==keybinds.BufferUp:
+		elif q==keybinds.BufferUp:
 
-		browser.Buffer_Up()
+			browser.Buffer_Up()
 
-	elif q==keybinds.BufferDown:
+		elif q==keybinds.BufferDown:
 
-		browser.Buffer_Down()
+			browser.Buffer_Down()
 
-	elif q in [ord(x) for x in keybinds.Jumper_alphabets]:
+		elif q in [ord(x) for x in keybinds.Jumper_alphabets]:
 
-		browser.Jump(q)
+			browser.Jump(q)
 
-	elif q==keybinds.goto_Back:
+		elif q==keybinds.goto_Back:
 
-		browser.goto_BACK()
+			browser.goto_BACK()
 
-	screen.timeout(100)
+		screen.timeout(100)
 
-	browser.refresh()
+		browser.refresh()
 
-browser.end()
+	browser.end()
+
+except:
+
+	browser.end()
