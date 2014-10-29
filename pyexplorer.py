@@ -106,8 +106,14 @@ class manage(object):
 		curses.init_pair(3, curses.COLOR_MAGENTA, curses.COLOR_WHITE)
 		curses.init_pair(4, curses.COLOR_WHITE, curses.COLOR_MAGENTA)
 
-		#For credits
+		#Color Pair For credits.
 		curses.init_pair(5, curses.COLOR_CYAN, curses.COLOR_BLACK)
+
+		#Color Pairs For Status. 
+		curses.init_pair(6, curses.COLOR_WHITE, curses.COLOR_RED)
+		curses.init_pair(7, curses.COLOR_RED, curses.COLOR_WHITE)
+		curses.init_pair(8, curses.COLOR_WHITE, curses.COLOR_GREEN)
+		curses.init_pair(9, curses.COLOR_GREEN, curses.COLOR_WHITE)
 
 		self.BOLD = [curses.A_NORMAL, curses.A_BOLD]
 
@@ -120,6 +126,8 @@ class manage(object):
 		self.y = 1
 		self.x = 0
 		self.q = 0
+
+		self.status = 'idle'
 
 		self.color_pair = 1
 
@@ -171,6 +179,10 @@ class manage(object):
 		if curses.is_term_resized(self.dims[0], self.dims[1]):
 
 			self.pre_printer()
+
+	def show_status(self):
+
+		self.pre_printer()
 
 	def sorter(self): #Breaks dir_items into two lists containing directories and files. Sort them individually in alphabetical order(lower case first) and them combines them.
 
@@ -236,6 +248,10 @@ class manage(object):
 			
 	def Chdir(self, switch_dir='.'): #A directory changing method which selects directory from selected region i.e. from self.selected, self.items_onscreen etc.
 
+		self.status = 'working'
+		self.show_status()
+		screen.refresh()
+
 		if switch_dir=='.': #When variable is not set by user
 
 			switch_dir = self.items_onscreen[self.selected]
@@ -265,7 +281,13 @@ class manage(object):
 
 				self.SIG = 2 #Enter pressed Signal. SIG = 2
 
+				self.status = 'idle'
+				#self.show_status() <- No need of it here since pre_printer() do the work.
+
 				self.pre_printer()
+
+		self.status = 'idle'
+		self.show_status()
 
 	def goto_Home(self):
 
@@ -376,13 +398,6 @@ class manage(object):
 	def pre_printer(self):
 
 		self.update_dims()
-
-		if self.SIG==257:
-			pass
-
-#			selected_from_end = (len(self.dir_items)-1) - self.global_selected
-
-
 
 		if self.SIG==-1: #UP Arrow Key
 			
@@ -555,6 +570,18 @@ class manage(object):
 
 			#Credits to Developer.
 			screen.addstr(self.dims[0]-1, self.dims[1]-len(" "+self.credits+" ")-1, " "+self.credits+" ", curses.color_pair(5) | self.BOLD[1])
+
+			if self.status=='working' and use=='ftp':
+
+				#Show red bar at the top-left of screen to show 'working' status.
+				screen.addstr(0, 0, " ", curses.color_pair(6))
+				screen.addstr(0, 2, "- Status", curses.color_pair(7))
+
+			elif self.status=='idle' and use=='ftp':
+
+				#Show green bar at the top-left of screen to show 'idle' status.
+				screen.addstr(0, 0, " ", curses.color_pair(8))
+				screen.addstr(0, 2, "- Status", curses.color_pair(9))
 
 			#Printing elements(Directories and Files.) and backgrounds.
 			screen.addstr(y+1, self.x, " "+dir_item+(self.dims[1]-len(dir_item)-1)*" ", curses.color_pair(self.color_pair) | self.BOLD[self.bold])
