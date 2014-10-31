@@ -42,9 +42,9 @@ if len(arguments)>0:
 if use=='ftp':
 
 	try:
-		ftp = ftputil.FTPHost(fhost, fuser, fpass)
+		ftp = ftputil.FTPHost(fhost, fuser, fpass) #Creates an instance of ftputil's FTPHost Object
 
-	except ftputil.error.FTPOSError:
+	except ftputil.error.FTPOSError: #If the ftp address could not be found. There could be two reasons. (i) Host is really donw (ii) Problem with client's internet connection.
 
 		print "\n 'ftp://"+str(fhost)+"'", "could not be resolved."
 		print "\n Please check your 'internet connection' and make sure the host is up and running."
@@ -53,14 +53,14 @@ if use=='ftp':
 
 		exit()
 
-	except ftputil.error.PermanentError:
+	except ftputil.error.PermanentError: #If username or password if invalid.
 
 		print "\n Username or Password Invalid.\n"
 
 		print "\n Exiting...\n"
 		exit()
 
-	except:
+	except: #If their is an unknown error.
 
 		print "\n Unknown Error"
 
@@ -69,7 +69,7 @@ if use=='ftp':
 		
 	ftp_os = ftp
 
-elif use=='local':
+elif use=='local': #If 'local' instance is demanded then store 'os' into ftp_os due to which local system is manipulated such as os.path.isfile checks for file in local system while ftputil.FTPHost.isfile checks for file in remote system(ftp)
 
 	ftp_os = os
 
@@ -127,7 +127,7 @@ class manage(object):
 		self.x = 0
 		self.q = 0
 
-		self.status = 'idle'
+		self.status = 'idle' #Setting the current status to 'idle' since their is none data which is outgoing/nothing which is being received.
 
 		self.color_pair = 1
 
@@ -180,11 +180,11 @@ class manage(object):
 
 			self.pre_printer()
 
-	def show_status(self):
+	def show_status(self): #It's use is nothing but a fashion.
 
 		self.pre_printer()
 
-	def sorter(self): #Breaks dir_items into two lists containing directories and files. Sort them individually in alphabetical order(lower case first) and them combines them.
+	def sorter(self): #Breaks dir_items into two lists containing directories and files(dirs and files). Sort them individually in alphabetical order with lower cased file/dir name first and then combines them.
 
 		self.dir_items = sorted(self.dir_items, key=ftp_os.path.isdir, reverse=True) #Output order - Directories first then Files.
 
@@ -201,7 +201,7 @@ class manage(object):
 
 		files = sorted(files, key=str.lower) #Sorts seperated directories(alphabetical order, lower case first)
 
-		if not self.show_hidden: #Don't show hidden files/directories.
+		if not self.show_hidden: #Deny showing hidden files/directories acc. to a variable self.show_hidden which can be modified by the user i.e. Allow showing hidden files/directories.
 
 			rm_hidden = [] #For dirs. Stands for 'removed hiddens'
 
