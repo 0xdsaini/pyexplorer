@@ -3,6 +3,7 @@
 import curses
 import os
 import ftputil #A high-level ftplib interface.
+import ftplib #For use with exception handling.
 from string import center
 from sys import argv
 from termcolor import colored
@@ -39,10 +40,19 @@ if len(arguments)>0:
 	globals().update(arguments) #Variables declaration in global scope eg:- parent_navigation, show_hidden etc.
 
 #--------------------------------------
+
+class FTPHost(ftputil.FTPHost):
+
+	def get_session(self):
+
+		return self._session
+
 if use=='ftp':
 
 	try:
-		ftp = ftputil.FTPHost(fhost, fuser, fpass) #Creates an instance of ftputil's FTPHost Object
+		ftp = FTPHost(fhost, fuser, fpass) #Creates an instance of ftputil's FTPHost Object
+
+		ftplib_obj =  ftp.get_session()
 
 	except ftputil.error.FTPOSError: #If the ftp address could not be found. There could be two reasons. (i) Host is really donw (ii) Problem with client's internet connection.
 
@@ -151,6 +161,8 @@ class manage(object):
 
 		self.sorter() #Sorts dir_items. See comments in sorter method.
 
+		self.ftp_transfers = {} #Have key role in ftp transfer tracking system. Contains key:value pairs where key are tickets of tranfer task given to ftp_download tasks. And where a single key have two values in which first value is the filename and the second value states the status of task i.e. DP(Download Progress), UP(Upload Progress), DC(Download Complete), UC(Upload Complete), DE(Download Error) and UE(Upload Error).
+
 		self.slice_start = 0 #Starts slicing the dir_items from value 0 by default i.e. start printing from first item/element(file/directory.).
 
 		self.SIG = 0 #define SIG:- Stands for "Signal" and means to recent key action. -1 represents KEY_UP, +1 represents KEY_DOWN, +2 represents ENTER, +3 represents HOME, +4 represents END and 0 represents initial State(i.e. no key pressed since the program was started).
@@ -158,6 +170,47 @@ class manage(object):
 		self.credits = "Developed By - Devesh"
 
 		self.pre_printer()
+
+	def ftp_download(self): #Resume supported ftp downloading method.
+
+		download_file = self.items_onscreen[self.selected] #A string variable which contain file(filename) to be downloaded.
+
+		if os.path.isfile(download_file): #If file which is to be downloaded exists on disk, then it may need to be resumed.
+
+			with open(download_file, 'rb') as f:
+
+				size_downloaded = len(f.read())
+
+			mode = 'ab'
+
+		else: #If file which is to be downloaded does not exist on disk.
+
+			size_downloaded = 0 #0 bytes are downloaded already in this case.
+
+			mode = 'wb'
+
+		ftplib_obj.sendcmd("REST %s" %(str(size_downloaded))) #Send data about from where(bytes offsets) to start downloading. Note: Here If else conditions should be used to match last time of creation/modification of file which was partially downloaded with the same time of file now. If they matches then it means that file is not modified.
+
+		try: #Getting Size to be downloaded.
+
+			self.download_file_size = ftp.stat(download_file)[6] #Getting size using ftputil's FTPHost object.
+
+		except ftplib.error_perm: #If server could not give 'size' details.
+
+			self.download_file_size = -1 #To recognize that size is Unknown, -1 is used.
+
+		local_file = open(download_file, mode)
+
+		self.ftp_downloading = 1 #1 means downloader is 'downloading' a file.
+
+		try:
+			ftplib_obj.retrbinary("RETR %s" %(download_file), local_file.write)
+
+		except: #Downloading not permitted by server.
+
+			self.ftp_downloading = 2 #2 means "error" downloading last file.
+
+		self.ftp_downloading = 0 #0 means downloader is 'not downloading' any file.
 
 	def update_data(self): #Updates screen dimensions, global_selected and screen_range.
 
@@ -285,6 +338,18 @@ class manage(object):
 				#self.show_status() <- No need of it here since pre_printer() do the work.
 
 				self.pre_printer()
+
+########## SHOULD BE REMOVED #
+
+		elif ftp_os.path.isfile(switch_dir) and use=='ftp': #Temperory for testing ftp downloads.
+
+			screen.addstr(10, 10, "Download Started")
+			screen.getch()
+			screen.refresh()
+
+			self.ftp_download()
+
+# SHOULD BE REMOVED ###########
 
 		self.status = 'idle'
 		self.show_status()

@@ -15,3 +15,5 @@
 
 6 - [[FTP Support]] - (i) Files and directory listing in different colors.
 					  (ii) Directory Switch.
+					  (iii) Resume Supported Downloading. [New].
+
