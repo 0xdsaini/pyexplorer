@@ -44,9 +44,14 @@ if len(arguments)>0:
 
 class FTPHost(ftputil.FTPHost):
 
-	def get_session(self):
+	def get_session_copy(self):
+		"""First copy the instance and then reterive ftplib's FTP object from that copied session and changes current directory to current directory of original(previous instance). And finally returns that curdir changed, copied FTPHost's ftplib's FTP instance.
+		"""
+		FTPHost_copy_session = self._copy()._session
 
-		return self._copy()._session #Returns another(instance copy) ftplib's FTP object from ftputil's FTPHost object.
+		FTPHost_copy_session.cwd(self.getcwd())
+
+		return FTPHost_copy_session #Returns another(instance copy) ftplib's FTP object from ftputil's FTPHost object
 
 if use=='ftp':
 
@@ -185,7 +190,7 @@ class manage(object):
 
 		if use=='ftp':
 
-			ftplib_obj = ftp_os._copy()._session
+			ftplib_obj = ftp_os.get_session_copy()
 			ftplib_obj.cwd(str(ftp_os.getcwd()))
 
 		if os.path.isfile(download_file): #If file which is to be downloaded exists on disk, then it may need to be resumed.
@@ -202,7 +207,7 @@ class manage(object):
 
 			mode = 'wb'
 
-		ftplib_obj.sendcmd("REST %s" %(str(size_downloaded))) #Send data about from where(bytes offsets) to start downloading. Note: Here If else conditions should be used to match last time of creation/modification of file which was partially downloaded with the same time of file now. If they matches then it means that file is not modified.
+		ftplib_obj.sendcmd("REST %s" %(str(size_downloaded))) #Send data about from where(bytes offsets) to start downloading. TODO: Here If else conditions should be used to match last time of creation/modification of file which was partially downloaded with the same time of file now. If they matches then it means that file is not modified and downloading it makes sense.
 
 		try: #Getting Size to be downloaded.
 
