@@ -174,10 +174,12 @@ class manage(object):
 
 		download_file = self.items_onscreen[self.selected]
 
-		test_thread = threading.Thread(target=self._ftp_download, args=(download_file,)) #Actual downloading by self._ftp_download method.
+		download_thread = threading.Thread(target=self._ftp_download, args=(download_file,)) #Actual downloading by self._ftp_download method.
 #		self._ftp_download(download_file) #Actual downloading here.
 
-		test_thread.start()
+		download_thread.setDaemon(True)
+
+		download_thread.start()
 
 	def _ftp_download(self, download_file): #[Real]Resume supported ftp downloading method.
 
