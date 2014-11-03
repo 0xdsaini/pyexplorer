@@ -157,6 +157,10 @@ class manage(object):
 
 		self.dir_items = self.extra_paths+ftp_os.listdir('.') #For initialization, it is needed, even Chdir method needs that dir_items should already exist.
 
+		self.dirs = []
+
+		self.files = []
+
 		self.items_onscreen = self.dir_items #Items that will be shown on the screen.
 
 		self.screen_range = [] #Range in which items(dirs, files) can occupy whole screen.
@@ -615,10 +619,13 @@ class manage(object):
 
 		screen.clear()
 
-		for y, dir_item in enumerate(self.items_onscreen): #Setting configurations to color up directories when printed.
+		for y, dir_item in enumerate(self.items_onscreen):
 
-			if ftp_os.path.isdir(dir_item):
+			if (dir_item in self.dirs) or (ftp_os.path.isdir(dir_item)):#Setting configurations to color up directories when printed. Exception: Appending to self.dirs.
 				
+				if dir_item not in self.dirs: #Just appends directories to another self variable(Purpose: cache to avoid calling ftp_os.path.isfile/isdir again and again.)
+					self.dirs.append(dir_item)
+
 				dir_item = "+ "+dir_item
 				
 				if y==self.selected: #When the current directory is selected.
@@ -629,8 +636,11 @@ class manage(object):
 					self.bold = 1
 					self.color_pair = 3
 
-			elif not ftp_os.path.isdir(dir_item): #Setting configurations to color up directories when printed.
+			elif (dir_item in self.files) or (ftp_os.path.isfile(dir_item)): #Setting configurations to color up files when printed. Exception: Appending to self.files.
 				
+				if dir_item not in self.files: #Just appends files to another self variable(Purpose: cache to avoid calling ftp_os.path.isfile/isdir again and again.)
+					self.files.append(dir_item)
+
 				dir_item = "  "+dir_item #Indentation because of symmetry with "+" before directory(ies) names.
 				
 				if y==self.selected: #When the current file is selected.

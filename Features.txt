@@ -1,4 +1,4 @@
-#Contains features of old and upcoming versions.
+#Contains features, updates, bugs/bugs fixes of old and upcoming versions.
 
 1 - [[Bug Fixed]] Navigation to previous directory possible with Backspace even on parent_navigation=False at origin.
 
@@ -18,3 +18,4 @@
 					  (iii) Resume Supported Downloading.
 					  (iv) Downloading in another thread.[New] - It lets user to download unlimited files in parallel or say leave a download in a queue and browse directories parallely.
 
+7 - [[Update]] - Use of self.dirs and self.files to faster the 'Movings'(eg: Moving Down/Moving Up etc.) with slow ftp connection. Note: It also slows down 'moving' in faster connections(eg:- local connection) directly proportional to no. of files/directories in current(.) path.
