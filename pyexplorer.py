@@ -2,6 +2,7 @@
 
 import curses
 import os
+import threading
 import ftputil #A high-level ftplib interface.
 import ftplib #For use with exception handling.
 from string import center
@@ -45,16 +46,14 @@ class FTPHost(ftputil.FTPHost):
 
 	def get_session(self):
 
-		return self._session
+		return self._copy()._session #Returns another(instance copy) ftplib's FTP object from ftputil's FTPHost object.
 
 if use=='ftp':
 
 	try:
-		ftp = FTPHost(fhost, fuser, fpass) #Creates an instance of ftputil's FTPHost Object
+		ftp = FTPHost(fhost, fuser, fpass) #Creates an instance of ftputil's FTPHost.
 
-		ftplib_obj =  ftp.get_session()
-
-	except ftputil.error.FTPOSError: #If the ftp address could not be found. There could be two reasons. (i) Host is really donw (ii) Problem with client's internet connection.
+	except ftputil.error.FTPOSError: #If ftp address could not be found.
 
 		print "\n 'ftp://"+str(fhost)+"'", "could not be resolved."
 		print "\n Please check your 'internet connection' and make sure the host is up and running."
@@ -171,9 +170,21 @@ class manage(object):
 
 		self.pre_printer()
 
-	def ftp_download(self): #Resume supported ftp downloading method.
+	def ftp_download(self): # Resume supported ftp downloading. It manages screen to show ftp downloading, resuming, pausing, stoping and queing i.e. it itself manages how to act(on the screen) on an ftp transfer(only download case).
 
-		download_file = self.items_onscreen[self.selected] #A string variable which contain file(filename) to be downloaded.
+		download_file = self.items_onscreen[self.selected]
+
+		test_thread = threading.Thread(target=self._ftp_download, args=(download_file,)) #Actual downloading by self._ftp_download method.
+#		self._ftp_download(download_file) #Actual downloading here.
+
+		test_thread.start()
+
+	def _ftp_download(self, download_file): #[Real]Resume supported ftp downloading method.
+
+		if use=='ftp':
+
+			ftplib_obj = ftp_os._copy()._session
+			ftplib_obj.cwd(str(ftp_os.getcwd()))
 
 		if os.path.isfile(download_file): #If file which is to be downloaded exists on disk, then it may need to be resumed.
 
@@ -298,58 +309,56 @@ class manage(object):
 				self.extra_paths = ['.']
 		else:
 			self.extra_paths = ['.', '..']
-			
+
+	def Enter_press(self): 
+
+		item = self.items_onscreen[self.selected]
+
+		if ftp_os.path.isfile(item) and use=='ftp':
+
+			self.ftp_download() #Downloads Selected File(If connection is FTP).
+
+		elif ftp_os.path.isdir(item):
+
+			self.Chdir() #Changes current directory to selected directory
+
 	def Chdir(self, switch_dir='.'): #A directory changing method which selects directory from selected region i.e. from self.selected, self.items_onscreen etc.
 
-		self.status = 'working'
-		self.show_status()
-		screen.refresh()
+		self.status = 'working' #Set status.
+		self.show_status() #Show status.
+		screen.refresh() #Updates screen to actually show status on screen.
 
 		if switch_dir=='.': #When variable is not set by user
 
 			switch_dir = self.items_onscreen[self.selected]
 
-		if ftp_os.path.isdir(switch_dir):
+		if not (self.dir_navigations==0 and (not self.parent_navigation)) or switch_dir!='..': #Specially for goto_HOME method to block navigation to previous(..) directory on False parent_navigation
+
+			ftp_os.chdir(switch_dir) #Changing the current working directory.
+
+			if switch_dir=='..':
+				self.dir_navigations-=1
+
+			elif switch_dir=='.':
+				pass
+
+			else:
+				self.dir_navigations+=1
+
+			self.switch_extra_paths() #Updates the self.extra_paths variable.
+
+			self.dir_items = self.extra_paths+ftp_os.listdir('.')
 			
-			if not (self.dir_navigations==0 and (not self.parent_navigation)) or switch_dir!='..': #Specially for goto_HOME method to block navigation to previous(..) directory on False parent_navigation
+			self.sorter() #Sorting current directory items in alphabetical order.
 
-				ftp_os.chdir(switch_dir) #Changing the current working directory.
+			self.selected = 0 #Reset self.selected on dir change.
 
-				if switch_dir=='..':
-					self.dir_navigations-=1
+			self.SIG = 2 #Enter pressed Signal. SIG = 2
 
-				elif switch_dir=='.':
-					pass
+			self.status = 'idle'
+			#self.show_status() <- No need of it here since pre_printer() do the work.
 
-				else:
-					self.dir_navigations+=1
-
-				self.switch_extra_paths() #Updates the self.extra_paths variable.
-
-				self.dir_items = self.extra_paths+ftp_os.listdir('.')
-				
-				self.sorter() #Sorting current directory items in alphabetical order.
-
-				self.selected = 0 #Reset self.selected on dir change.
-
-				self.SIG = 2 #Enter pressed Signal. SIG = 2
-
-				self.status = 'idle'
-				#self.show_status() <- No need of it here since pre_printer() do the work.
-
-				self.pre_printer()
-
-########## SHOULD BE REMOVED #
-
-		elif ftp_os.path.isfile(switch_dir) and use=='ftp': #Temperory for testing ftp downloads.
-
-			screen.addstr(10, 10, "Download Started")
-			screen.getch()
-			screen.refresh()
-
-			self.ftp_download()
-
-# SHOULD BE REMOVED ###########
+			self.pre_printer()
 
 		self.status = 'idle'
 		self.show_status()
@@ -671,7 +680,7 @@ try:
 
 		if q==10:
 
-			browser.Chdir()
+			browser.Enter_press()
 
 		elif q==keybinds.MoveDown:
 
@@ -711,6 +720,6 @@ try:
 
 	browser.end()
 
-except:
+except: 
 
 	browser.end()

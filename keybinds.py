@@ -88,4 +88,4 @@ def load_keybinds():
 
 	_define_variables_(keybinds) #Now defines every key:value pair as variable=value in global scope.
 
-	return keybinds #Returning keybinds 'dict' variable
+	return keybinds #Returning keybinds 'dict' variable too.

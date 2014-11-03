@@ -15,5 +15,6 @@
 
 6 - [[FTP Support]] - (i) Files and directory listing in different colors.
 					  (ii) Directory Switch.
-					  (iii) Resume Supported Downloading. [New].
+					  (iii) Resume Supported Downloading.
+					  (iv) Downloading in another thread.[New] - It lets user to download unlimited files in parallel or say leave a download in a queue and browse directories parallely.
 
