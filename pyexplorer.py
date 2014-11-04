@@ -255,7 +255,6 @@ class manage(object):
 
 		if transfer_type=='download':
 
-			screen.addstr(10, 10, str(d_tickets))
 			return (len(d_tickets), d_tickets, None)
 
 		elif transfer_type=='upload':
