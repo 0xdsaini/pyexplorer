@@ -157,9 +157,9 @@ class manage(object):
 
 		self.dir_items = self.extra_paths+ftp_os.listdir('.') #For initialization, it is needed, even Chdir method needs that dir_items should already exist.
 
-		self.dirs = []
+		self.dirs = [] #Contains only directories from self.dir_items.
 
-		self.files = []
+		self.files = [] #Contains only files from self.dir_items.
 
 		self.items_onscreen = self.dir_items #Items that will be shown on the screen.
 
@@ -169,7 +169,10 @@ class manage(object):
 
 		self.sorter() #Sorts dir_items. See comments in sorter method.
 
-		self.ftp_transfers = {} #Have key role in ftp transfer tracking system. Contains key:value pairs where key are tickets of tranfer task given to ftp_download tasks. And where a single key have two values in which first value is the filename and the second value states the status of task i.e. DP(Download Progress), UP(Upload Progress), DC(Download Complete), UC(Upload Complete), DE(Download Error) and UE(Upload Error).
+		self.ftp_transfers = {} #Have key role in ftp transfer tracking system. Contains key:value pairs where key are tickets of transfer task given to ftp_download tasks. And where a single key have four values in which first value is 'thread object', second value is the filename(server filename), third value is the pathname(local download file full path) and the fourth value states the status of task i.e. DP(Download Progress), UP(Upload Progress), DC(Download Complete), UC(Upload Complete), DE(Download Error) and UE(Upload Error).
+
+		self.ftp_d_tickets = [] #ftp download tickets
+		self.ftp_u_tickets = [] #ftp upload tickets
 
 		self.slice_start = 0 #Starts slicing the dir_items from value 0 by default i.e. start printing from first item/element(file/directory.).
 
@@ -179,18 +182,109 @@ class manage(object):
 
 		self.pre_printer()
 
+	def get_ticket(self, transfer_type='download'): #Gives tickets to downloads/uploads.
+
+		if transfer_type=='download':
+			tickets_type = self.ftp_d_tickets
+		
+		elif transfer_type=='upload':
+			tickets_type = self.ftp_u_tickets
+
+		try:
+
+			return tickets_type[-1]+1 #New ticket = last ticket + 1. Returns New ticket.
+
+		except IndexError:
+
+			return 0 #Returns initial ticket.
+
+	def is_ftp_transfer_active(self, transfer_type='both'): #Returns ftp_transferer's activity. transfer_type can be 'upload', 'download' and 'both'.
+
+		if transfer_type=='upload':
+
+			if self._get_transfers('upload', 'DP')[0] > 0:
+
+				return True
+
+		elif transfer_type=='download':
+
+			if self._get_transfers('download', 'DP')[0] > 0:
+
+				return True
+
+		elif transfer_type=='both':
+
+			if self._get_transfers('download', 'DP')[0] + self._get_transfers('upload', 'DP')[0] > 0:
+
+				return True
+
+		else:
+
+			exit("function is_ftp_transfer_active(), unknown transfer_type %s" %transfer_type)
+
+		return False
+
+	def _get_transfers(self, transfer_type='both', count_factor='DC'): #Returns a 3 element tuple where first element is the counts of count_facter matches in ftp_tickets's ticket's 4th element.
+
+		d_tickets = [] #Stores tickets if count_factor in present in each 3rd index of self.tickets(where tickets are from ftp_u_tickets)
+		u_tickets = [] #Stores tickets if count_factor in present in each 3rd index of self.tickets(where tickets are from ftp_d_tickets).
+
+		if transfer_type in ['download', 'both']:
+
+			for i in self.ftp_d_tickets:
+
+				try:
+
+					if self.ftp_transfers[i][3] == count_factor:
+
+						d_tickets.append(i)
+
+				except: pass
+
+		if transfer_type in ['upload', 'both']:
+
+			for i in self.ftp_u_tickets:
+
+				try:
+
+					if self.transfers[i][3] == count_factor:
+
+						u_tickets.append(i)
+
+				except:pass
+
+		if transfer_type=='download':
+
+			screen.addstr(10, 10, str(d_tickets))
+			return (len(d_tickets), d_tickets, None)
+
+		elif transfer_type=='upload':
+
+			return (len(u_tickets), None, u_tickets)
+
+		elif transfer_type=='both':
+
+			return (len(d_tickets)+len(u_tickets), d_tickets, u_tickets)
+
 	def ftp_download(self): # Resume supported ftp downloading. It manages screen to show ftp downloading, resuming, pausing, stoping and queing i.e. it itself manages how to act(on the screen) on an ftp transfer(only download case).
 
 		download_file = self.items_onscreen[self.selected]
 
-		download_thread = threading.Thread(target=self._ftp_download, args=(download_file,)) #Actual downloading by self._ftp_download method.
-#		self._ftp_download(download_file) #Actual downloading here.
+		ticket = self.get_ticket() #Gets ticket
 
-		download_thread.setDaemon(True)
+		self.ftp_d_tickets.append(ticket) #Append to ftp download tickets. i.e. ftp_d_tickets
+
+		download_thread = threading.Thread(target=self._ftp_download, args=(download_file, ticket)) #Actual downloading by self._ftp_download method.
+
+		download_thread.setDaemon(True) #Daemonizing the thread so that 'downloading' will stop after program exit.
+
+		self.ftp_transfers[ticket] = [download_thread, download_file, os.getcwd()+'/'+download_file] #Last 4th element i.e. download status will be appended in the thread running.
 
 		download_thread.start()
 
-	def _ftp_download(self, download_file): #[Real]Resume supported ftp downloading method.
+	def _ftp_download(self, download_file, ticket): #[Real]Resume supported ftp downloading method.
+
+		self.ftp_transfers[ticket].append("DP") #Appends Download Status - "DP"(Download Progress) into the global self.ftp_transfers[ticket] list initially.
 
 		if use=='ftp':
 
@@ -211,7 +305,7 @@ class manage(object):
 
 			mode = 'wb'
 
-		ftplib_obj.sendcmd("REST %s" %(str(size_downloaded))) #Send data about from where(bytes offsets) to start downloading. TODO: Here If else conditions should be used to match last time of creation/modification of file which was partially downloaded with the same time of file now. If they matches then it means that file is not modified and downloading it makes sense.
+		ftplib_obj.sendcmd("REST %s" %(str(size_downloaded))) #Send data about from where(bytes offsets) to start downloading. TODO: Here If else conditions should be used to match last time of creation/modification of file which was partially downloaded with the same time of file now. If they matches then it means that file is not modified and downloading it, makes sense.
 
 		try: #Getting Size to be downloaded.
 
@@ -223,16 +317,20 @@ class manage(object):
 
 		local_file = open(download_file, mode)
 
-		self.ftp_downloading = 1 #1 means downloader is 'downloading' a file.
-
 		try:
 			ftplib_obj.retrbinary("RETR %s" %(download_file), local_file.write)
 
 		except: #Downloading not permitted by server.
 
-			self.ftp_downloading = 2 #2 means "error" downloading last file.
+			download_status = 'DE' #DE means "error" downloading file.
 
-		self.ftp_downloading = 0 #0 means downloader is 'not downloading' any file.
+			self.ftp_transfers[ticket][3] = download_status
+
+			return #Stops execution of function here since Error occured, if program is left to be continued then it will change its status to "DC" which is not true.
+
+		download_status = 'DC' #DC means downloader has completed the download.
+
+		self.ftp_transfers[ticket][3] = download_status
 
 	def update_data(self): #Updates screen dimensions, global_selected and screen_range.
 
@@ -370,6 +468,9 @@ class manage(object):
 			#self.show_status() <- No need of it here since pre_printer() do the work.
 
 			self.pre_printer()
+
+		self.dirs = [] #Resetting...
+		self.files = [] #Resetting...
 
 		self.status = 'idle'
 		self.show_status()
@@ -636,7 +737,7 @@ class manage(object):
 					self.bold = 1
 					self.color_pair = 3
 
-			elif (dir_item in self.files) or (ftp_os.path.isfile(dir_item)): #Setting configurations to color up files when printed. Exception: Appending to self.files.
+			elif (dir_item in self.files) or not (ftp_os.path.isdir(dir_item)): #Setting configurations to color up files when printed. Exception: Appending to self.files.
 				
 				if dir_item not in self.files: #Just appends files to another self variable(Purpose: cache to avoid calling ftp_os.path.isfile/isdir again and again.)
 					self.files.append(dir_item)
@@ -665,17 +766,48 @@ class manage(object):
 			#Credits to Developer.
 			screen.addstr(self.dims[0]-1, self.dims[1]-len(" "+self.credits+" ")-1, " "+self.credits+" ", curses.color_pair(5) | self.BOLD[1])
 
-			if self.status=='working' and use=='ftp':
+			if use=='ftp':
 
-				#Show red bar at the top-left of screen to show 'working' status.
-				screen.addstr(0, 0, " ", curses.color_pair(6))
-				screen.addstr(0, 2, "- Status", curses.color_pair(7))
+				screen.addstr(0, 1, " |", curses.color_pair(9)) #Status seperator.
+				screen.addstr(0, 4, "|", curses.color_pair(9)) #Status seperator.
+				screen.addstr(0, 6, "|", curses.color_pair(9)) #Status seperator.
+				screen.addstr(0, 8, "|", curses.color_pair(9)) #Status seperator.
 
-			elif self.status=='idle' and use=='ftp':
+				if self.status=='working':
 
-				#Show green bar at the top-left of screen to show 'idle' status.
-				screen.addstr(0, 0, " ", curses.color_pair(8))
-				screen.addstr(0, 2, "- Status", curses.color_pair(9))
+					#Show red bar at the top-left of screen to show 'working' status.
+					screen.addstr(0, 0, " ", curses.color_pair(6))
+					screen.addstr(0, 3, "B", curses.color_pair(7))
+
+				elif self.status=='idle':
+
+					#Show green bar at the top-left of screen to show 'idle' status.
+					screen.addstr(0, 3, "F", curses.color_pair(9))
+
+				download_active = self.is_ftp_transfer_active('download')
+				upload_active = self.is_ftp_transfer_active('upload')
+
+				if download_active:
+
+					screen.addstr(0, 0, " ", curses.color_pair(6))
+					screen.addstr(0, 5, "D", curses.color_pair(7))
+
+				else:
+
+					screen.addstr(0, 5, "D", curses.color_pair(9))
+				
+				if upload_active:
+
+					screen.addstr(0, 0, " ", curses.color_pair(6))
+					screen.addstr(0, 7, "U", curses.color_pair(7))
+
+				else:
+
+					screen.addstr(0, 7, "U", curses.color_pair(9))
+
+				if (((self.status=='idle') & (not download_active)) & (not upload_active)) :
+
+					screen.addstr(0, 0, " ", curses.color_pair(8))
 
 			#Printing elements(Directories and Files.) and backgrounds.
 			screen.addstr(y+1, self.x, " "+dir_item+(self.dims[1]-len(dir_item)-1)*" ", curses.color_pair(self.color_pair) | self.BOLD[self.bold])
@@ -737,6 +869,6 @@ try:
 
 	browser.end()
 
-except: 
+except KeyboardInterrupt: 
 
 	browser.end()

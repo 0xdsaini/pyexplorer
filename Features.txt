@@ -16,6 +16,13 @@
 6 - [[FTP Support]] - (i) Files and directory listing in different colors.
 					  (ii) Directory Switch.
 					  (iii) Resume Supported Downloading.
-					  (iv) Downloading in another thread.[New] - It lets user to download unlimited files in parallel or say leave a download in a queue and browse directories parallely.
+					  (iv) Downloading in another thread - It lets user to download unlimited files in parallel or say leave a download in a queue and browse directories parallely.
+					  (v) Screen Showing of Download/Upload Data Added.[New]
+					  (vi) Trackers are established to get status of every download[New][For future use]
 
 7 - [[Update]] - Use of self.dirs and self.files to faster the 'Movings'(eg: Moving Down/Moving Up etc.) with slow ftp connection. Note: It also slows down 'moving' in faster connections(eg:- local connection) directly proportional to no. of files/directories in current(.) path.
+
+8 - [[Update]] - Status Text on the top is replaced/updated/arranged by a single "B"/"F" (B for "Busy" and F for "Free").
+
+9 - [[Update]] - If Status, either from "B", "D", "U" is active/color_red then Status Bar(looks like this || filled with either green or red color) will become 'red' indicating some activity.
+
