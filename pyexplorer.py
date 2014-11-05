@@ -269,7 +269,7 @@ class manage(object):
 
 		download_file = self.items_onscreen[self.selected]
 
-		ticket = self.get_ticket() #Gets ticket
+		ticket = self.get_ticket() #Getting upload/download tickets.
 
 		self.ftp_d_tickets.append(ticket) #Append to ftp download tickets. i.e. ftp_d_tickets
 
@@ -765,7 +765,7 @@ class manage(object):
 			#Credits to Developer.
 			screen.addstr(self.dims[0]-1, self.dims[1]-len(" "+self.credits+" ")-1, " "+self.credits+" ", curses.color_pair(5) | self.BOLD[1])
 
-			if use=='ftp':
+			if use=='ftp': #Shows statuses of various activities at the top as described below.
 
 				screen.addstr(0, 1, " |", curses.color_pair(9)) #Status seperator.
 				screen.addstr(0, 4, "|", curses.color_pair(9)) #Status seperator.
@@ -774,39 +774,39 @@ class manage(object):
 
 				if self.status=='working':
 
-					#Show red bar at the top-left of screen to show 'working' status.
+					#Show red 'B' at top-left of screen to show 'Busy' status.
 					screen.addstr(0, 0, " ", curses.color_pair(6))
 					screen.addstr(0, 3, "B", curses.color_pair(7))
 
 				elif self.status=='idle':
 
-					#Show green bar at the top-left of screen to show 'idle' status.
+					#Show green 'F' at the top-left of screen to show 'Free' status.
 					screen.addstr(0, 3, "F", curses.color_pair(9))
 
-				download_active = self.is_ftp_transfer_active('download')
-				upload_active = self.is_ftp_transfer_active('upload')
+				download_active = self.is_ftp_transfer_active('download') #Checks wheather downloader is downloading any file i.e. downloader's activity.
+				upload_active = self.is_ftp_transfer_active('upload') #Checks wheather uploader is uploading any file i.e. uploader's activity.
 
-				if download_active:
+				if download_active: #If Downloader is active then...
 
-					screen.addstr(0, 0, " ", curses.color_pair(6))
-					screen.addstr(0, 5, "D", curses.color_pair(7))
+					screen.addstr(0, 0, " ", curses.color_pair(6)) #...Turns the vertical bar to 'red' colored.
+					screen.addstr(0, 5, "D", curses.color_pair(7)) #...Turns the letter "D" to 'red' colored.
 
-				else:
+				else: #If Downloader isn't downloading anything at all then...
 
-					screen.addstr(0, 5, "D", curses.color_pair(9))
+					screen.addstr(0, 5, "D", curses.color_pair(9)) #...Turn the letter 'D' to 'green' colored.
 				
-				if upload_active:
+				if upload_active: #If uploader is active then...
 
-					screen.addstr(0, 0, " ", curses.color_pair(6))
-					screen.addstr(0, 7, "U", curses.color_pair(7))
+					screen.addstr(0, 0, " ", curses.color_pair(6)) #...Turns the vertical bar to 'red' colored.
+					screen.addstr(0, 7, "U", curses.color_pair(7)) #...Turns the letter 'U' to 'red' colored.
 
-				else:
+				else: #If upload isn't uploading any file at all then...
 
-					screen.addstr(0, 7, "U", curses.color_pair(9))
+					screen.addstr(0, 7, "U", curses.color_pair(9)) #...Turns the letter 'U' to 'green' colored.
 
-				if (((self.status=='idle') & (not download_active)) & (not upload_active)) :
+				if (((self.status=='idle') & (not download_active)) & (not upload_active)) : #If uploader/downloaders are 'not active' and status is 'idle'(i.e. 'Free' status) then...
 
-					screen.addstr(0, 0, " ", curses.color_pair(8))
+					screen.addstr(0, 0, " ", curses.color_pair(8)) #...Finally turns the vertical bar into 'green' colored stating no activity.
 
 			#Printing elements(Directories and Files.) and backgrounds.
 			screen.addstr(y+1, self.x, " "+dir_item+(self.dims[1]-len(dir_item)-1)*" ", curses.color_pair(self.color_pair) | self.BOLD[self.bold])
