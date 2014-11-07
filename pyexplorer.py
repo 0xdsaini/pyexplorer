@@ -2,6 +2,7 @@
 
 import curses
 import os
+import time
 import threading
 import ftputil #A high-level ftplib interface.
 import ftplib #For use with exception handling.
@@ -198,6 +199,25 @@ class manage(object):
 
 			return 0 #Returns initial ticket.
 
+	def _transfer_tracker_update(self): #Updates screen 
+
+		while True:
+
+			upload_counts = self._get_transfers('upload', 'DP')[0]
+			download_counts = self._get_transfers('download', 'DP')[0]
+
+			if upload_counts>0:
+				self.pre_printer()
+
+			elif download_counts>0:
+				self.pre_printer()
+
+			else:
+				self.pre_printer()
+				break
+
+			time.sleep(0.5)
+
 	def is_ftp_transfer_active(self, transfer_type='both'): #Returns ftp_transferer's activity. transfer_type can be 'upload', 'download' and 'both'.
 
 		if transfer_type=='upload':
@@ -280,6 +300,12 @@ class manage(object):
 		self.ftp_transfers[ticket] = [download_thread, download_file, os.getcwd()+'/'+download_file] #Last 4th element i.e. download status will be appended in the thread running.
 
 		download_thread.start()
+
+		transfer_update = threading.Thread(target=self._transfer_tracker_update)
+
+		transfer_update.setDaemon(True)
+
+		transfer_update.start()
 
 	def _ftp_download(self, download_file, ticket): #[Real]Resume supported ftp downloading method.
 
@@ -776,7 +802,7 @@ class manage(object):
 
 					#Show red 'B' at top-left of screen to show 'Busy' status.
 					screen.addstr(0, 0, " ", curses.color_pair(6))
-					screen.addstr(0, 3, "B", curses.color_pair(7))
+					screen.addstr(0, 3, "B", curses.color_pair(7) | self.BOLD[1])
 
 				elif self.status=='idle':
 
@@ -789,7 +815,7 @@ class manage(object):
 				if download_active: #If Downloader is active then...
 
 					screen.addstr(0, 0, " ", curses.color_pair(6)) #...Turns the vertical bar to 'red' colored.
-					screen.addstr(0, 5, "D", curses.color_pair(7)) #...Turns the letter "D" to 'red' colored.
+					screen.addstr(0, 5, "D", curses.color_pair(7) | self.BOLD[1]) #...Turns the letter "D" to 'red' colored.
 
 				else: #If Downloader isn't downloading anything at all then...
 
@@ -798,7 +824,7 @@ class manage(object):
 				if upload_active: #If uploader is active then...
 
 					screen.addstr(0, 0, " ", curses.color_pair(6)) #...Turns the vertical bar to 'red' colored.
-					screen.addstr(0, 7, "U", curses.color_pair(7)) #...Turns the letter 'U' to 'red' colored.
+					screen.addstr(0, 7, "U", curses.color_pair(7) | self.BOLD[1]) #...Turns the letter 'U' to 'red' colored.
 
 				else: #If upload isn't uploading any file at all then...
 
@@ -807,8 +833,6 @@ class manage(object):
 				if (((self.status=='idle') & (not download_active)) & (not upload_active)) : #If uploader/downloaders are 'not active' and status is 'idle'(i.e. 'Free' status) then...
 
 					screen.addstr(0, 0, " ", curses.color_pair(8)) #...Finally turns the vertical bar into 'green' colored stating no activity.
-
-				#screen.erase()
 
 			#Printing elements(Directories and Files.) and backgrounds.
 			screen.addstr(y+1, self.x, " "+dir_item+(self.dims[1]-len(dir_item)-1)*" ", curses.color_pair(self.color_pair) | self.BOLD[self.bold])
@@ -870,6 +894,6 @@ try:
 
 	browser.end()
 
-except KeyboardInterrupt: 
+except: #To prevent unrestored terminal/tty etc. configuration on unexpected exits i.e. Unhandled exceptions.
 
 	browser.end()
