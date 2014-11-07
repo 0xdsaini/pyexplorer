@@ -717,7 +717,7 @@ class manage(object):
 
 		self.items_onscreen = self.dir_items[slice_start : slice_end] #self.dir_items is preserved to have an option for recovery.
 
-		screen.clear()
+		screen.erase()
 
 		for y, dir_item in enumerate(self.items_onscreen):
 
@@ -807,6 +807,8 @@ class manage(object):
 				if (((self.status=='idle') & (not download_active)) & (not upload_active)) : #If uploader/downloaders are 'not active' and status is 'idle'(i.e. 'Free' status) then...
 
 					screen.addstr(0, 0, " ", curses.color_pair(8)) #...Finally turns the vertical bar into 'green' colored stating no activity.
+
+				#screen.erase()
 
 			#Printing elements(Directories and Files.) and backgrounds.
 			screen.addstr(y+1, self.x, " "+dir_item+(self.dims[1]-len(dir_item)-1)*" ", curses.color_pair(self.color_pair) | self.BOLD[self.bold])

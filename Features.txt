@@ -26,3 +26,5 @@
 
 9 - [[Update]] - If Status, either from "B", "D", "U" is active/color_red then Status Bar(looks like this || filled with either green or red color) will become 'red' indicating some activity.
 
+10 - [[Update]] - (i) Screen flickering have been reduced(approx to 0) with the use of 'screen.erase' instead of continuous use of screen.clear followed by screen.refresh which clears all the screen and then place renders virtual screen to real screen. While screen.erase does not clears screen but erase the differences. That's how this screen flickering is reduced.
+
