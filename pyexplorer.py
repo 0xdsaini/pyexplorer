@@ -81,7 +81,7 @@ if use=='ftp':
 
 		print "\n Exiting...\n"
 		exit()
-		
+
 	ftp_os = ftp
 
 elif use=='local': #If 'local' instance is demanded then store 'os' into ftp_os due to which local system is manipulated such as os.path.isfile checks for file in local system while ftputil.FTPHost.isfile checks for file in remote system(ftp)
@@ -96,11 +96,11 @@ screen = curses.initscr()
 screen.keypad(1) #Enable use of curses.KEY_UP, curses.KEY_DOWN etc. if it is enabled i.e. screen.keypad() is passed a value 1 instead of 0.
 
 class manage(object):
-	
+
 	def __init__(self, parent_navigation, show_hidden, origin, move_buffer): #previous_directories a bool value which means wheather to include .. in the contents of current directories or not.
 
 		self.update_dims() #getting screen dimensions.
-		
+
 		self.parent_navigation = parent_navigation
 
 		self.show_hidden = show_hidden
@@ -124,7 +124,7 @@ class manage(object):
 		#Color Pair For credits.
 		curses.init_pair(5, curses.COLOR_CYAN, curses.COLOR_BLACK)
 
-		#Color Pairs For Status. 
+		#Color Pairs For Status.
 		curses.init_pair(6, curses.COLOR_WHITE, curses.COLOR_RED)
 		curses.init_pair(7, curses.COLOR_RED, curses.COLOR_WHITE)
 		curses.init_pair(8, curses.COLOR_WHITE, curses.COLOR_GREEN)
@@ -187,7 +187,7 @@ class manage(object):
 
 		if transfer_type=='download':
 			tickets_type = self.ftp_d_tickets
-		
+
 		elif transfer_type=='upload':
 			tickets_type = self.ftp_u_tickets
 
@@ -199,7 +199,7 @@ class manage(object):
 
 			return 0 #Returns initial ticket.
 
-	def _transfer_tracker_update(self): #Updates screen 
+	def _transfer_tracker_update(self): #Updates screen
 
 		while True:
 
@@ -364,7 +364,7 @@ class manage(object):
 		self.global_selected = self.dir_items.index(self.items_onscreen[0]) + self.selected
 
 		start = self.global_selected-self.selected
-		end = start + self.dims[0]-3 
+		end = start + self.dims[0]-3
 
 		self.screen_range = [start, end]
 
@@ -416,7 +416,7 @@ class manage(object):
 				mutable_dirs = dirs[1:]
 
 			for i in mutable_dirs: #Removing hidden directories.
-					
+
 				if not i[0]=='.':
 					rm_hidden.append(i)
 
@@ -444,7 +444,7 @@ class manage(object):
 		else:
 			self.extra_paths = ['.', '..']
 
-	def Enter_press(self): 
+	def Enter_press(self):
 
 		item = self.items_onscreen[self.selected]
 
@@ -482,7 +482,7 @@ class manage(object):
 			self.switch_extra_paths() #Updates the self.extra_paths variable.
 
 			self.dir_items = self.extra_paths+ftp_os.listdir('.')
-			
+
 			self.sorter() #Sorting current directory items in alphabetical order.
 
 			self.selected = 0 #Reset self.selected on dir change.
@@ -513,7 +513,7 @@ class manage(object):
 		self.SIG = 4
 
 		self.pre_printer()
-	
+
 	def Move_Up(self):
 
 		self.update_dims()
@@ -533,7 +533,7 @@ class manage(object):
 		if self.selected < len(self.items_onscreen)-1 or not self.items_onscreen[-1:]==self.dir_items[-1:]:
 
 			self.SIG = 1 #KEY_DOWN signal stored.
-			
+
 			self.selected+=1
 
 			self.pre_printer()
@@ -611,9 +611,9 @@ class manage(object):
 		self.update_dims()
 
 		if self.SIG==-1: #UP Arrow Key
-			
+
 			if self.selected==-1: #Selected out of screen range in upper side. It simply means user requests for upper elements.
-				
+
 				self.selected+=1
 
 				self.slice_start-=1
@@ -629,7 +629,7 @@ class manage(object):
 
 
 		elif self.SIG==2: #ENTER Key
-			
+
 			self.slice_start = 0
 
 
@@ -748,12 +748,12 @@ class manage(object):
 		for y, dir_item in enumerate(self.items_onscreen):
 
 			if (dir_item in self.dirs) or (ftp_os.path.isdir(dir_item)):#Setting configurations to color up directories when printed. Exception: Appending to self.dirs.
-				
+
 				if dir_item not in self.dirs: #Just appends directories to another self variable(Purpose: cache to avoid calling ftp_os.path.isfile/isdir again and again.)
 					self.dirs.append(dir_item)
 
 				dir_item = "+ "+dir_item
-				
+
 				if y==self.selected: #When the current directory is selected.
 					self.bold = 1
 					self.color_pair = 4
@@ -763,12 +763,12 @@ class manage(object):
 					self.color_pair = 3
 
 			elif (dir_item in self.files) or not (ftp_os.path.isdir(dir_item)): #Setting configurations to color up files when printed. Exception: Appending to self.files.
-				
+
 				if dir_item not in self.files: #Just appends files to another self variable(Purpose: cache to avoid calling ftp_os.path.isfile/isdir again and again.)
 					self.files.append(dir_item)
 
 				dir_item = "  "+dir_item #Indentation because of symmetry with "+" before directory(ies) names.
-				
+
 				if y==self.selected: #When the current file is selected.
 					self.color_pair = 2
 					self.bold = 1
@@ -820,7 +820,7 @@ class manage(object):
 				else: #If Downloader isn't downloading anything at all then...
 
 					screen.addstr(0, 5, "D", curses.color_pair(9)) #...Turn the letter 'D' to 'green' colored.
-				
+
 				if upload_active: #If uploader is active then...
 
 					screen.addstr(0, 0, " ", curses.color_pair(6)) #...Turns the vertical bar to 'red' colored.
