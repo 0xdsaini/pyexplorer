@@ -30,3 +30,4 @@
 
 11 - [[Update]] - Tracker functionality has been added to track downloader/uploader activity. Now, status bar will be updated automatically.
 
+12 - [[New]] - New method _Jump_ is implemented to work as global index jumpers.

@@ -180,11 +180,40 @@ class manage(object):
         self.slice_start = 0 #Starts slicing the dir_items from value 0 by default i.e. start printing from first item/element(file/directory.).
 
         self.SIG = 0 #define SIG:- Stands for "Signal" and means to recent key action. -1 represents KEY_UP, +1 represents KEY_DOWN, +2 represents ENTER, +3 represents HOME, +4 represents END and 0 represents initial State(i.e. no key pressed since the program was started).
+        self.SIG_active = False
 
         self.credits = "Developed By - Devesh"
 
         self.pre_printer()
 
+    def _Jump_(self, jump):
+
+        self.update_data()
+
+        lower_range = self.screen_range[0]
+
+        upper_range = min([self.screen_range[1], len(self.dir_items) - 1])
+
+        if jump > 0:
+
+            if lower_range < jump <= upper_range:
+
+                self.selected = jump - self.screen_range[0]
+
+            elif jump > self.screen_range[1] and jump < len(self.dir_items) - 1:
+
+                self.slice_start = jump - upper_range + lower_range
+
+                self.selected = len(self.items_onscreen)-1
+
+            elif jump < self.screen_range[0]:
+
+                self.slice_start -= self.slice_start - jump
+
+                self.selected = 0
+
+            self.pre_printer()
+            
     def get_ticket(self, transfer_type='download'): #Gives tickets to downloads/uploads.
 
         if transfer_type == 'download':
@@ -492,6 +521,7 @@ class manage(object):
             self.selected = 0 #Reset self.selected on dir change.
 
             self.SIG = 2 #Enter pressed Signal. SIG = 2
+            self.SIG_active = True
 
             self.status = 'idle'
             #self.show_status() <- No need of it here since pre_printer() do the work.
@@ -509,12 +539,14 @@ class manage(object):
         self.selected = 0
 
         self.SIG = 3
+        self.SIG_active = True
 
         self.pre_printer()
 
     def goto_END(self):
 
         self.SIG = 4
+        self.SIG_active = True
 
         self.pre_printer()
 
@@ -525,6 +557,7 @@ class manage(object):
         if self.selected > 0 or not self.items_onscreen[0] == self.dir_items[0]:
 
             self.SIG = -1 #KEY_UP signal stored.
+            self.SIG_active = True
 
             self.selected -= 1
 
@@ -537,6 +570,7 @@ class manage(object):
         if self.selected < len(self.items_onscreen)-1 or not self.items_onscreen[-1:] == self.dir_items[-1:]:
 
             self.SIG = 1 #KEY_DOWN signal stored.
+            self.SIG_active = True
 
             self.selected += 1
 
@@ -547,6 +581,7 @@ class manage(object):
         self.update_dims()
 
         self.SIG = 7
+        self.SIG_active = True
 
         self.pre_printer()
 
@@ -555,10 +590,11 @@ class manage(object):
         self.update_dims()
 
         self.SIG = 8
+        self.SIG_active = True
 
         self.pre_printer()
 
-    def Jump(self, jumpchar): #Jump to filename/dirname starting with the given character.
+    def Jump(self, jumpchar): #Jump to filename/dirname starting with the given(jumpchar) character.
 
         jumpchar = ord(chr(jumpchar).lower())
 
@@ -600,6 +636,7 @@ class manage(object):
         self.jumpchar = jumpchar
 
         self.SIG = 5 #5 key when any jumpchar key is pressed eg: a, b, g, z, 5, 9, 1...
+        self.SIG_active = True
 
         self.pre_printer()
 
@@ -608,6 +645,7 @@ class manage(object):
         self.Chdir(switch_dir='..')
 
         self.SIG = 6 #Signal 6 -> Backspace key
+        self.SIG_active = True
 
         self.pre_printer()
 
@@ -615,7 +653,7 @@ class manage(object):
 
         self.update_dims()
 
-        if self.SIG == -1: #UP Arrow Key
+        if self.SIG == -1 and self.SIG_active: #UP Arrow Key
 
             if self.selected == -1: #Selected out of screen range in upper side. It simply means user requests for upper elements.
 
@@ -624,26 +662,26 @@ class manage(object):
                 self.slice_start -= 1
 
 
-        elif self.SIG == 1: #DOWN Arrow Key
+        elif self.SIG == 1 and self.SIG_active: #DOWN Arrow Key
 
-            if self.selected == self.dims[0]-2: #Selected out of screen range in downward side. It simply means user requests for more elements from downwards.
+            if self.selected == self.dims[0]-2: #Selected out of screen range in downward side. It simply means user requests for more  downwards elements.
 
                 self.selected -= 1
 
                 self.slice_start += 1
 
 
-        elif self.SIG == 2: #ENTER Key
+        elif self.SIG == 2 and self.SIG_active: #ENTER Key
 
             self.slice_start = 0
 
 
-        elif self.SIG == 3: #HOME Key
+        elif self.SIG == 3 and self.SIG_active: #HOME Key
 
             self.slice_start = 0
 
 
-        elif self.SIG == 4: #END Key
+        elif self.SIG == 4 and self.SIG_active: #END Key
 
             if len(self.dir_items) > self.dims[0] - 2:
 
@@ -656,7 +694,7 @@ class manage(object):
                 self.selected = len(self.dir_items)-1
 
 
-        elif self.SIG == 5: #Jumpchar keys.
+        elif self.SIG == 5 and self.SIG_active: #Jumpchar keys.
 
             self.update_data() #Updating screen range
 
@@ -678,7 +716,7 @@ class manage(object):
 
                     self.selected = 0
 
-        elif self.SIG == 7: #Buffering Up
+        elif self.SIG == 7 and self.SIG_active: #Buffering Up
 
             self.update_data() #Updates self.global_selected
 
@@ -709,7 +747,7 @@ class manage(object):
 
                     self.slice_start = 0
 
-        elif self.SIG == 8: #Buffering Down
+        elif self.SIG == 8 and self.SIG_active: #Buffering Down
 
             self.update_data()
 
@@ -737,12 +775,19 @@ class manage(object):
 
                 self.selected = len(self.items_onscreen)-1 #Selects last element on the screen.
 
+        self.SIG_active = False #Deactivate SIGNAL effect
+
         #Finally passing arguments to printer.
-        self.printer(self.slice_start, (self.dims[0]-2)+self.slice_start)
+
+        self._printer_(self.slice_start, (self.dims[0]-2)+self.slice_start)
 
         #Preserves self.slice_start value to be used in refreshing.
 
-    def printer(self, slice_start=0, slice_end=1000): #1000 is assumption that none screen will have capacity to print more than 1000 characters.
+    def __tester__(self):
+
+        self._jump_(25)
+
+    def _printer_(self, slice_start=0, slice_end=1000): #1000 is assumption that none screen will have capacity to print more than 1000 characters.
 
         self.update_dims() #If terminal size have been resized.
 
@@ -887,7 +932,7 @@ try:
 
         elif q == keybinds.BufferUp:
 
-            browser.Buffer_Up()
+            browser.__tester__()
 
         elif q == keybinds.BufferDown:
 
