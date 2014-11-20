@@ -186,34 +186,38 @@ class manage(object):
 
         self.pre_printer()
 
-    def _Jump_(self, jump):
+    def _Globaljump_(self, jump): #Jumps to last item virtually. Need pre_printer call to print changes on screen.
 
         self.update_data()
 
         lower_range = self.screen_range[0]
 
-        upper_range = min([self.screen_range[1], len(self.dir_items) - 1])
+        upper_range = min([self.screen_range[1], len(self.dir_items) - 1]) #Screen range[1] may be gtr than the total items, sometimes. dir_items may also be gtr screen range[1]. So choosing the minimum of them.
 
-        if jump > 0:
+        if jump >= 0:
 
-            if lower_range < jump <= upper_range:
+            if lower_range <= jump <= upper_range: #If item is currently visible on the screen.
 
                 self.selected = jump - self.screen_range[0]
 
-            elif jump > self.screen_range[1] and jump < len(self.dir_items) - 1:
+            elif (jump > self.screen_range[1]) and (jump <= len(self.dir_items)-1): #If item is out of screen in downwards direction.
 
                 self.slice_start = jump - upper_range + lower_range
 
                 self.selected = len(self.items_onscreen)-1
 
-            elif jump < self.screen_range[0]:
+            elif jump < self.screen_range[0]: #If item is out of screen in downwards direction.
 
                 self.slice_start -= self.slice_start - jump
 
                 self.selected = 0
 
-            self.pre_printer()
-            
+            return True #Success Signal.
+
+        else:
+
+            return False #Failure Signal.
+
     def get_ticket(self, transfer_type='download'): #Gives tickets to downloads/uploads.
 
         if transfer_type == 'download':
@@ -523,6 +527,8 @@ class manage(object):
             self.SIG = 2 #Enter pressed Signal. SIG = 2
             self.SIG_active = True
 
+            self.slice_start = 0
+
             self.status = 'idle'
             #self.show_status() <- No need of it here since pre_printer() do the work.
 
@@ -537,6 +543,7 @@ class manage(object):
     def goto_Home(self):
 
         self.selected = 0
+        self.slice_start = 0
 
         self.SIG = 3
         self.SIG_active = True
@@ -547,6 +554,10 @@ class manage(object):
 
         self.SIG = 4
         self.SIG_active = True
+
+        last_item_index = len(self.dir_items)-1 #Last item of dir_items
+
+        self._Globaljump_(last_item_index)
 
         self.pre_printer()
 
@@ -561,11 +572,17 @@ class manage(object):
 
             self.selected -= 1
 
+            if self.selected == -1: #Selected out of screen range in upper side. It simply means user requests for upper elements.
+
+                self.selected += 1
+
+                self.slice_start -= 1
+
             self.pre_printer()
 
     def Move_Down(self):
 
-        self.update_dims()
+        self.update_data()
 
         if self.selected < len(self.items_onscreen)-1 or not self.items_onscreen[-1:] == self.dir_items[-1:]:
 
@@ -574,54 +591,96 @@ class manage(object):
 
             self.selected += 1
 
+            if self.selected > len(self.items_onscreen)-1: #Statement on the right side is the max range of self.selected.
+            #Selected out of screen range in downward side. It simply means user requests for more downwards elements.
+                self.selected -= 1
+
+                self.slice_start += 1
+
             self.pre_printer()
 
     def Buffer_Up(self):
 
-        self.update_dims()
+        self.update_data() #Updates self.global_selected
 
         self.SIG = 7
         self.SIG_active = True
+
+        if self.move_buffer == 'page':
+
+            move_buffer = len(self.items_onscreen) - 1 #Not changing the value in self.move_buffer since if it is changed then it will be maintained till the end of the program life and in between its life, if directory is changed then that value shows if defect(move with buffer which was previously obtained from previous directory) eg:- If a dir contains 10 elements(then self.move_buffer will be set to 10) but if we have switched to its child/parent directory and if it have 50 elements(on screen) then Paging down will result in jumping to 10th element(buffer 10) again and again instead of jumping 50 elements.
+
+        else:
+
+            move_buffer = self.move_buffer #Obtaining user defined value of move_buffer.
+
+        if self.selected - move_buffer >= 0:
+
+            self.selected -= move_buffer
+
+        elif self.selected - move_buffer < 0:
+
+            slice_start = max([self.global_selected - move_buffer, 0])
+
+            self.selected = 0
+
+            if slice_start >= 0:
+
+                self.slice_start = slice_start
+
+            else:
+
+                self.slice_start = 0
 
         self.pre_printer()
 
     def Buffer_Down(self):
 
-        self.update_dims()
+        self.update_data()
 
         self.SIG = 8
         self.SIG_active = True
 
+        if self.move_buffer == 'page': #Page Down.
+
+            move_buffer = len(self.items_onscreen) - 1 #Not changing the value in self.move_buffer since if it is changed then it will be maintained till the end of the program life and in between its life, if directory is changed then that value shows if defect(move with buffer which was previously obtained from previous directory) eg:- If a dir contains 10 elements(then self.move_buffer will be set to 10) but if we have switched to its child/parent directory and if it have 50 elements(on screen) then Paging down will result in jumping to 10th element(buffer 10) again and again instead of jumping 50 elements
+
+        else:
+
+            move_buffer = self.move_buffer #Obtaining user defined value of move_buffer.
+
+        global_move = min([self.global_selected + move_buffer, len(self.dir_items)-1])
+
+        self._Globaljump_(global_move)
+
         self.pre_printer()
 
-    def Jump(self, jumpchar): #Jump to filename/dirname starting with the given(jumpchar) character.
+    def Jumpchar(self, jumpchar): #A Jumper with the help of characters. Jump to filename/dirname starting with the given(jumpchar) character.
 
         jumpchar = ord(chr(jumpchar).lower())
 
         self.update_dims()
 
-        self.first_chars = [ord(x[0].lower()) for x in self.dir_items] #A list containing first characters of elements of dir_items.
+        self.first_chars = [ord(x[0].lower()) for x in self.dir_items] #A list containing ASCII no. of first characters of elements of dir_items in same order.
 
-        if self.SIG == 5: #If last signal was a jumpchar signal then...
+        if self.SIG == 5 and self.jumpchar == jumpchar: #If last signal was a jumpchar signal then and the given character jumpchar is same as last one then...
 
-            if self.jumpchar == jumpchar: #...If the given character jumpchar is same as last one then...
+            try: #...try to get next dir_item's element's first character. (Try-except here for managing Index-error exception)
 
-                try: #...try to get next dir_item's element's first character. (Try-except here for managing Index-error exception)
+                if self.first_chars[self.jumpindex+1] == self.jumpchar:
 
-                    if self.first_chars[self.jumpindex+1] == self.jumpchar:
+                    self.jumpindex += 1
 
-                        self.jumpindex += 1
+                    self._Globaljump_(self.jumpindex)
 
-                        self.pre_printer()
+                    self.pre_printer()
 
-                        return True
+                    return # Returning to break execution here because, here, we have done.
 
-                    else: pass #We have passed it instead of returning something(breaking everything here) since selection is now at the end of possible element and we want to return to the first filename/dirname of pressed character on keyboard.
+                else: pass #We have passed it instead of returning something(breaking everything here) since selection is now at the end of possible element and we want to return to the first filename/dirname of pressed character on keyboard.
 
-                except IndexError:
-                    pass #Same here as "else: pass" says.
-
-            else: pass #Same here.
+            except IndexError:
+                pass #Same here as above "else: pass" says.
 
         else: pass #Same here
 
@@ -629,14 +688,15 @@ class manage(object):
 
             self.jumpindex = self.first_chars.index(jumpchar) #Index of the required element in dir_items.
 
-        except ValueError:
+        except ValueError: #If the requested character is not in list i.e. no element in current directory which starts with given char.
 
-            return False #Returning because we do not want signal to be stored since the signal wasn't executed.
+            return None #Returning because we do not want signal to be stored since the signal wasn't executed.
 
         self.jumpchar = jumpchar
 
         self.SIG = 5 #5 key when any jumpchar key is pressed eg: a, b, g, z, 5, 9, 1...
-        self.SIG_active = True
+
+        self._Globaljump_(self.jumpindex)
 
         self.pre_printer()
 
@@ -651,141 +711,7 @@ class manage(object):
 
     def pre_printer(self):
 
-        self.update_dims()
-
-        if self.SIG == -1 and self.SIG_active: #UP Arrow Key
-
-            if self.selected == -1: #Selected out of screen range in upper side. It simply means user requests for upper elements.
-
-                self.selected += 1
-
-                self.slice_start -= 1
-
-
-        elif self.SIG == 1 and self.SIG_active: #DOWN Arrow Key
-
-            if self.selected == self.dims[0]-2: #Selected out of screen range in downward side. It simply means user requests for more  downwards elements.
-
-                self.selected -= 1
-
-                self.slice_start += 1
-
-
-        elif self.SIG == 2 and self.SIG_active: #ENTER Key
-
-            self.slice_start = 0
-
-
-        elif self.SIG == 3 and self.SIG_active: #HOME Key
-
-            self.slice_start = 0
-
-
-        elif self.SIG == 4 and self.SIG_active: #END Key
-
-            if len(self.dir_items) > self.dims[0] - 2:
-
-                self.selected = self.dims[0] - 3
-
-                self.slice_start = len(self.dir_items)-(self.dims[0]-2)
-
-            else:
-
-                self.selected = len(self.dir_items)-1
-
-
-        elif self.SIG == 5 and self.SIG_active: #Jumpchar keys.
-
-            self.update_data() #Updating screen range
-
-            if self.screen_range[0] <= self.jumpindex <= self.screen_range[1]: #If the item we are looking for is on the screen then simply change self.selected value to select that.
-
-                self.selected = self.jumpindex - self.screen_range[0]
-
-            else: #If the item we are looking for is not on the screen then...
-
-                if self.jumpindex > self.screen_range[0] + self.selected: #If index of required element is greater than the index we are on(selected item index.) then show selection at the end.
-
-                    self.slice_start = self.jumpindex - (self.dims[0] - 3)
-
-                    self.selected = self.dims[0] - 3
-
-                else: #If index of required element is lesser than the index we are on(selected element index) then show selection at the top.
-
-                    self.slice_start = self.jumpindex
-
-                    self.selected = 0
-
-        elif self.SIG == 7 and self.SIG_active: #Buffering Up
-
-            self.update_data() #Updates self.global_selected
-
-            if self.move_buffer == 'page':
-
-                move_buffer = len(self.items_onscreen) - 1 #Not changing the value in self.move_buffer since if it is changed then it will be maintained till the end of the program life and in between its life, if directory is changed then that value shows if defect(move with buffer which was previously obtained from previous directory) eg:- If a dir contains 10 elements(then self.move_buffer will be set to 10) but if we have switched to its child/parent directory and if it have 50 elements(on screen) then Paging down will result in jumping to 10th element(buffer 10) again and again instead of jumping 50 elements
-
-            else:
-
-                move_buffer = self.move_buffer
-
-            if self.selected - move_buffer >= 0:
-
-                self.selected -= move_buffer
-
-            elif self.selected - move_buffer < 0:
-
-
-                slice_start = self.global_selected - move_buffer
-
-                self.selected = 0
-
-                if slice_start >= 0:
-
-                    self.slice_start = slice_start
-
-                else:
-
-                    self.slice_start = 0
-
-        elif self.SIG == 8 and self.SIG_active: #Buffering Down
-
-            self.update_data()
-
-            if self.move_buffer == 'page': #Page Down.
-
-                move_buffer = len(self.items_onscreen) - 1 #Not changing the value in self.move_buffer since if it is changed then it will be maintained till the end of the program life and in between its life, if directory is changed then that value shows if defect(move with buffer which was previously obtained from previous directory) eg:- If a dir contains 10 elements(then self.move_buffer will be set to 10) but if we have switched to its child/parent directory and if it have 50 elements(on screen) then Paging down will result in jumping to 10th element(buffer 10) again and again instead of jumping 50 elements
-
-            else:
-
-                move_buffer = self.move_buffer #Obtaining user defined value of move_buffer.
-
-            if (self.global_selected + move_buffer) > len(self.dir_items) - 1: #If needed(upcoming) item/element is out of max range of dir_items then...
-
-                self.slice_start = len(self.dir_items) - len(self.items_onscreen) #Start slicing in such a way that it is the last page(i.e no other slicing provides last element of dir_items at the very last of current y-dimension) and
-
-                self.selected = len(self.items_onscreen) - 1 #and selects the last element. OVER!
-
-            elif move_buffer <= (len(self.items_onscreen)-1) - self.selected:
-
-                self.selected += move_buffer
-
-            elif move_buffer > (len(self.items_onscreen)-1) -self.selected:
-
-                self.slice_start = self.screen_range[0] + move_buffer - ((len(self.items_onscreen)-1) - self.selected)
-
-                self.selected = len(self.items_onscreen)-1 #Selects last element on the screen.
-
-        self.SIG_active = False #Deactivate SIGNAL effect
-
-        #Finally passing arguments to printer.
-
         self._printer_(self.slice_start, (self.dims[0]-2)+self.slice_start)
-
-        #Preserves self.slice_start value to be used in refreshing.
-
-    def __tester__(self):
-
-        self._jump_(25)
 
     def _printer_(self, slice_start=0, slice_end=1000): #1000 is assumption that none screen will have capacity to print more than 1000 characters.
 
@@ -932,7 +858,7 @@ try:
 
         elif q == keybinds.BufferUp:
 
-            browser.__tester__()
+            browser.Buffer_Up()
 
         elif q == keybinds.BufferDown:
 
@@ -940,7 +866,7 @@ try:
 
         elif q in [ord(x) for x in keybinds.Jumper_alphabets]:
 
-            browser.Jump(q)
+            browser.Jumpchar(q)
 
         elif q == keybinds.goto_Back:
 
