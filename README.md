@@ -19,4 +19,4 @@ Currently, it **does not support** installation to any system but you can run it
     Step 1 - chmod +x pyexplorer.py
     Step 2 - ./pyexplorer.py
 
-You can also offer your own contribution(s) to our [Bitbucket](https://bitbucket.org/devesh_saini/pyexplorer.git) repository.
+You can also offer your own contribution(s) to our [Github](https://github.com/devesh525s/pyexplorer) repository.
