@@ -21,7 +21,7 @@ run it directly.
     Step 1 - chmod +x pyexplorer.py
     Step 2 - ./pyexplorer.py
 
-###Supported keys
+##Supported keys
 Once, you have started the application. These keys are supported ```Up Arrow```, ```Down Arrow```,
 ```Page Up```, ```Page Down```, ```Home```, ```End```, ```Enter```, ```Q```(Uppercased Q) and all the
 lowercased ASCII characters(a, b, c, d, ., ~, 1, 5, 0, etc.).
@@ -51,7 +51,7 @@ This is used to quit the application anytime.
 lowercased ASCII characters are used to jump to elements(directories/files)
 starting whose name starts with that character which has been pressed.
 
-###Command-line arguments
+##Command-line arguments
 Passing command-line arguments are bit different. Arguments can be passed as
 "key=value" pairs. Have a look here.
 
