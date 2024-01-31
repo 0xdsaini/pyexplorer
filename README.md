@@ -2,6 +2,18 @@
 
 PyExplorer is a command-line file explorer written in Python, allowing users to navigate and interact with both local directories and FTP servers. Below is a comprehensive guide on installing, running, and customizing PyExplorer.
 
+<table border=0>
+ <tr>
+  <td>System</td>
+  <td>FTP</td>
+ </tr>
+ <tr>
+    <td><img src="./assets/system.png"></td>
+    <td><img src="./assets/ftp.png"></td>
+ </tr>
+</table>
+
+
 ## Dependencies
 
 ### Main Dependency
