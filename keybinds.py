@@ -19,7 +19,9 @@
 
 import json
 import curses
-from string import printable, uppercase, lowercase
+from string import printable
+from string import ascii_uppercase as uppercase
+from string import ascii_lowercase as lowercase
 
 def _load_(keybind_file):
 	

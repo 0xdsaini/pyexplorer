@@ -26,7 +26,7 @@ import time
 import threading
 import ftputil #A high-level ftplib interface.
 import ftplib #For use with exception handling.
-from string import center
+# from string import center
 from sys import argv
 import keybinds #Self developed module for managing key bindings.
 import cmd_args #Self developed module for managing command line arguments.
@@ -81,25 +81,25 @@ if use=='ftp':
 
     except ftputil.error.FTPOSError: #If ftp address could not be found.
 
-        print "\n 'ftp://"+str(fhost)+"'", "could not be resolved."
-        print "\n Please check your 'internet connection' and make sure the host is up and running."
+        print("\n 'ftp://"+str(fhost)+"'", "could not be resolved.")
+        print("\n Please check your 'internet connection' and make sure the host is up and running.")
 
-        print "\n Exiting...\n"
+        print("\n Exiting...\n")
 
         exit()
 
     except ftputil.error.PermanentError: #If username or password if invalid.
 
-        print "\n Username or Password Invalid.\n"
+        print("\n Username or Password Invalid.\n")
 
-        print "\n Exiting...\n"
+        print("\n Exiting...\n")
         exit()
 
     except: #If their is an unknown error.
 
-        print "\n Unknown Error"
+        print("\n Unknown Error")
 
-        print "\n Exiting...\n"
+        print("\n Exiting...\n")
         exit()
 
     ftp_os = ftp
@@ -750,7 +750,7 @@ class manage(object):
             ftp_space = 0
 
         #Current working directory. Visible at the top of window.
-        screen.addstr(0, ftp_space, center(cwd, self.dims[1]-ftp_space), curses.color_pair(3) | self.BOLD[1])
+        screen.addstr(0, ftp_space, cwd.center(self.dims[1]-ftp_space), curses.color_pair(3) | self.BOLD[1])
 
         #----------------------------------------------------------------------------------
 

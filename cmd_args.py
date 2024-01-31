@@ -70,19 +70,19 @@ def _invalid_arg_reporter_(arguments, invalid_arguments, do_exit=False): #On pri
 
 	os.system("clear")
 
-	print "\n Please check your argument values:- \n"
+	print("\n Please check your argument values:- \n")
 
 	for index, arg in enumerate(arguments.keys()):
 
 		if arg in invalid_arguments:
-			print " "+str(index+1)+". "+arg+"="+colored(arguments[arg], color='white', on_color='on_red') #Print the key first and value with 'red' background. eg:- key=red_colored(value). It's red because this value will always be wrong.
+			print(" "+str(index+1)+". "+arg+"="+colored(arguments[arg], color='white', on_color='on_red')) #Print the key first and value with 'red' background. eg:- key=red_colored(value). It's red because this value will always be wrong.
 
 		else:
-			print " "+str(index+1)+". "+arg+"="+colored(arguments[arg], color='white', on_color='on_green') #Print the key first and value with 'green' background eg:- key=green_colored(value). It's red because this value will always be right.
+			print(" "+str(index+1)+". "+arg+"="+colored(arguments[arg], color='white', on_color='on_green')) #Print the key first and value with 'green' background eg:- key=green_colored(value). It's red because this value will always be right.
 
 	if do_exit:
 
-		print #A horizontal space before leaving.
+		print() #A horizontal space before leaving.
 		exit()
 
 def _change_types_(arguments):
@@ -139,4 +139,4 @@ def getargs(argv):
 
 if __name__=="__main__":
 
-	print getargs(sys.argv)
+	print(getargs(sys.argv))
