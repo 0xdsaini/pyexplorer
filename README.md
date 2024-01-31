@@ -1,150 +1,97 @@
-#Pyexplorer
+# PyExplorer
 
+PyExplorer is a command-line file explorer written in Python, allowing users to navigate and interact with both local directories and FTP servers. Below is a comprehensive guide on installing, running, and customizing PyExplorer.
 
-##Dependencies
+## Dependencies
 
-###Main dependency
+### Main Dependency
 
-    1. python2.7
+- Python 3.8 or above
 
-###External Python libraries
-(Hint : Below libs can be installed with the help of **pip** on Linux based
-platforms.)
+### External Python Libraries
 
-    1. termcolor
-    2. ftputil
+Install these libraries using `pip` on Linux-based platforms:
 
-###Installation
-Currently, it **does not support** installation to any system but you can
-run it directly.
+1. termcolor
+    ```bash
+    pip install termcolor
+    ```
 
-    Step 1 - chmod +x pyexplorer.py
-    Step 2 - ./pyexplorer.py
+2. ftputil
+    ```bash
+    pip install ftputil
+    ```
 
-##Supported keys
-Once, you have started the application. These keys are supported ```Up Arrow```, ```Down Arrow```,
-```Page Up```, ```Page Down```, ```Home```, ```End```, ```Enter```, ```Q```(Uppercased Q) and all the
-lowercased ASCII characters(a, b, c, d, ., ~, 1, 5, 0, etc.).
+## Installation
 
-####Enter
-If on local connection, used to switch directories. If on FTP connection,
-used to switch directories and download files.
+Currently, PyExplorer does not support installation to any system, but it can be run directly.
 
-####Backspace
-It is used to switch to its parent directory.
+1. Make the script executable:
+    ```bash
+    chmod +x pyexplorer.py
+    ```
 
-####Up/Down Arrow
-These two keys are used to move 1 element(directory/file) upward/downward
-respectively.
+2. Run PyExplorer:
+    ```bash
+    ./pyexplorer.py
+    ```
 
-####Page Up/Down
-These two keys can be used to move ```x``` no. of elements upwards/downwards
-(Here ```x``` is the **no. of elements on the screen**.). It can be optionally
-changed by passing a value with ```buff```(Stands for buffer) command line
-argument before starting the application. See **buff** in 
-**Command-line arguments** section for more info.
+## Supported Keys
 
-####Uppercased Q
-This is used to quit the application anytime.
+- **Enter:** Switch directories (local) or switch directories and download files (FTP).
+- **Backspace:** Switch to the parent directory.
+- **Up/Down Arrow:** Move one element (directory/file) upward/downward.
+- **Page Up/Down:** Move a specified number of elements (configurable using the `buff` command line argument).
+- **Home/End:** Jump to the beginning or end of the list.
+- **Uppercased Q:** Quit the application.
+- **Lowercased ASCII Characters:** Jump to elements starting with the pressed character.
 
-####lowercased ASCII characters.
-lowercased ASCII characters are used to jump to elements(directories/files)
-starting whose name starts with that character which has been pressed.
+## Command-line Arguments
 
-##Command-line arguments
-Passing command-line arguments are bit different. Arguments can be passed as
-"key=value" pairs. Have a look here.
+Arguments are passed as "key=value" pairs. Here are the supported command-line arguments:
 
-####origin
-This argument allows to start exploration from another path other than the
-current path.
+- **origin:** Start exploration from a path other than the current path.
+    ```bash
+    ./pyexplorer.py origin=<path to start exploration>
+    ```
 
-    ./pyexplorer.py origin=<path to initially start exploration.>
+- **parent_navigation:** Permit/forbid navigation to parent directories (default is `True`).
+    ```bash
+    ./pyexplorer.py parent_navigation=<True/False>
+    ```
 
-Example(s):-
+- **show_hidden:** Enable/disable showing hidden files/directories (default is `False`).
+    ```bash
+    ./pyexplorer.py show_hidden=<True/False>
+    ```
 
-    1 - ./pyexplorer.py origin=/usr/bin
-    2 - ./pyexplorer.py "origin=/home/moore/Desktop/Source Codes"
-
-####parent_navigation
-This permit/forbid navigation to parent directories according to the
-boolean value passed to it. Allowed values are ```True, true, 1``` for
-True and ```False/false/0``` for False. By default it is set to ```True```
-i.e. it does not forbid navigation to parent directories
-
-    ./pyexplorer.py parent_navigation=<boolean>
-
-Example(s):-
-
-    1 - ./pyexplorer.py parent_navigation=False
-
-####show_hidden
-As it sounds loudly, it enable/disable showing of hidden files/directories.
-Allowed values are ```True, true, 1``` for True and ```False/false/0```
-for False. By default it is set to ```False```.
-
-    ./pyexplorer.py show_hidden=<boolean>
-
-Example(s):-
-
-    1 - ./pyexplorer.py show_hidden=True
-
-####buff
-It stands for **buff*er. It can be used to optionally configure Page Up/Down
-movements. For example if its value is set to 5, Page Up/Down will result in
-moving 5 elements(directories/files) Up/Down.
-
+- **buff:** Configure Page Up/Down movements (default is 1).
+    ```bash
     ./pyexplorer.py buff=<any number>
+    ```
 
-Example(s):-
-
-    1 - ./pyexplorer.py buff=5
-
-####use
-Its values can be ```local``` or ```ftp```. By default it is set to ```local```.
-If set to ```local```, explores directories locally. If set to ```ftp```, explores
-directories of a ftp server(can be passed using ```fhost``` argument) and supports
-**resumable downloading**. Currently **no uploading** support is implemented. 
-
+- **use:** Explore directories locally or via FTP (default is `local`).
+    ```bash
     ./pyexplorer.py use=<ftp/local>
+    ```
 
-Example(s):-
-
-    1 - ./pyexplorer.py use=ftp
-
-####fhost
-The value passed with it is the **ftp host** to connect to. This is by default set
-to ```localhost```. Allowed values are up and working ftp server addresses. It
-must not start with a ```ftp://``` prefix.
-  To use it, you have to explicitly tell pyexplorer to use ftp by passing ```use=ftp```
-argument before starting it.
-
+- **fhost:** Set the FTP host to connect to (default is `localhost`).
+    ```bash
     ./pyexplorer.py use=ftp fhost=<host address>
+    ```
 
-Example(s):-
-
-    1 - ./pyexplorer.py use=ftp fhost=ftp.debian.org
-
-####fuser
-This is to pass **ftp username** to the ftp server with which you want to connect
-to ftp server. See **fhost**, **fpass** for **host address** and
-**passwords** respectively.
-
+- **fuser:** Pass FTP username to connect to the FTP server.
+    ```bash
     ./pyexplorer.py use=ftp fhost=<host address> fuser=<username>
+    ```
 
-Example(s):-
+- **fpass:** Pass FTP password to connect to the FTP server.
+    ```bash
+    ./pyexplorer.py use=ftp fhost=<host address> fuser=<username> fpass=<password>
+    ```
 
-    1 - ./pyexplorer.py use=ftp fhost=localhost fhost=devesh
+## Contribution
 
-####fpass
-This is to pass **ftp password** to ftp server. See **fhost**, **fuser** for
-**host address** and **password** respectively. This is what I personally
-don't like, but I promise to change it soon.
+Feel free to contribute to our [GitHub repository](https://github.com/0xdsaini/pyexplorer).
 
-    ./pyexplorer.py use=ftp fpass=<password>
-
-Example(s):-
-
-    1 - ./pyexplorer.py use=ftp fhost=localhost fhost=devesh fpass=trustmeIwonttellyou
-
-You can also offer your own contribution(s) to our [Github](https://github.com/devesh525s/pyexplorer) repository.
+Explore and navigate effortlessly with PyExplorer!
