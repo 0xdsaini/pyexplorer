@@ -76,13 +76,15 @@ def _replace_special_values_(keybinds):
 
 		keybinds_printable = filter(lambda x: x not in lowercase, printable) #Excluding lowercase characters.
 
-		keybinds['Jumper_alphabets'] = keybinds_printable
+		# Required to give a non-exhaustible list rather than one-time exhaustible filter-object
+		keybinds['Jumper_alphabets'] = list(keybinds_printable)
 
 	elif keybinds["Jumper_alphabets"]=="lowercase":
 		
 		keybinds_printable = filter(lambda x: x not in uppercase, printable) #Excluding uppercase characters.
 
-		keybinds['Jumper_alphabets'] = keybinds_printable
+		# Required to give a non-exhaustible list rather than one-time exhaustible filter-object
+		keybinds['Jumper_alphabets'] = list(keybinds_printable) 
 
 	else:
 		raise ValueError("\"Jumper_alphabets\" value - \""+keybinds["Jumper_alphabets"]+"\" is invalid. It should be \"uppercase\" or \"lowercase\"")
