@@ -886,7 +886,10 @@ try:
 
             browser.Jumpchar(q)
 
-        elif q == keybinds.goto_Back:
+        # On mac, keybind.goto_Back constant was 263 while
+        # keyboard was sending 127. so it is quite unreliable
+        # to use curses.KEY_BACKSPACE. keeping it for compability.
+        elif q == keybinds.goto_Back or q == 127:
 
             browser.goto_BACK()
 
